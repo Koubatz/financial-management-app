@@ -1,0 +1,13 @@
+.git
+.turbo
+node_modules
+dist
+build
+coverage
+.pnpm-store
+Dockerfile
+docker-compose.yml
+docker-compose.prod.yml
+docker-compose.override.yml
+**/*.local
+**/*.log

@@ -1,0 +1,86 @@
+# ---------------------------
+# Node / Monorepo
+# ---------------------------
+node_modules/
+.pnpm-store/
+dist/
+build/
+.cache/
+.tmp/
+.temp/
+.env
+.env.local
+.env.*.local
+
+# Turborepo cache
+.turbo/
+turbo/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# ---------------------------
+# Editor & OS
+# ---------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ---------------------------
+# Frontend (Vite / React)
+# ---------------------------
+apps/web/.vite/
+apps/web/dist/
+apps/web/node_modules/
+apps/web/coverage/
+
+# ---------------------------
+# Backend (NestJS)
+# ---------------------------
+apps/api/dist/
+apps/api/node_modules/
+apps/api/coverage/
+apps/api/.env
+
+# ---------------------------
+# Packages
+# ---------------------------
+packages/*/dist/
+packages/*/node_modules/
+packages/*/coverage/
+
+# ---------------------------
+# Testing
+# ---------------------------
+coverage/
+*.lcov
+jest-*
+.vitest/
+.vscode-test/
+
+# ---------------------------
+# Misc
+# ---------------------------
+*.tgz
+*.zip
+*.tar.gz
+*.bak
+*.tmp
+*.orig
+*.rej
+
+# ---------------------------
+# Docker
+# ---------------------------
+docker-compose.override.yml
+**/Dockerfile.dev
+**/Dockerfile.local
+*.pid
