@@ -10,7 +10,6 @@ COPY apps/web ./apps/web
 
 ENV CI=true
 RUN pnpm install --frozen-lockfile
-RUN pnpm --filter "@acme/utils" run build
 RUN pnpm --filter web run build
 
 # Stage 2: serve static bundle via nginx

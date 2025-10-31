@@ -5,11 +5,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "types": ["vite/client"],
-    "paths": {
-      "@acme/utils": ["../../packages/utils/src/index.ts"],
-      "@acme/utils/*": ["../../packages/utils/src/*"]
-    }
   },
-  "include": ["src", "vite.config.ts"],
-  "references": [{ "path": "../../packages/utils/tsconfig.json" }]
+  "include": ["src", "vite.config.ts"]
 }
