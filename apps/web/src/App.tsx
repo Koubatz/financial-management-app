@@ -8,8 +8,7 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-    const baseUrl =
-      (import.meta.env.VITE_API_URL as string | undefined) ?? DEFAULT_API_URL;
+    const baseUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? DEFAULT_API_URL;
     const requestUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
 
     const fetchMessage = async () => {
@@ -31,7 +30,9 @@ export default function App() {
       }
     };
 
-    fetchMessage();
+    fetchMessage().catch((err) => {
+      console.error(err);
+    });
 
     return () => {
       cancelled = true;
