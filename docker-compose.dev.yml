@@ -24,12 +24,11 @@ services:
     environment:
       <<: *common-env
       PORT: '3000'
-      # Ajuste conforme seu .env
-      DB_HOST: db
-      DB_PORT: '5432'
-      DB_NAME: monorepo
-      DB_USER: user
-      DB_PASS: password
+      POSTGRES_HOST: db
+      POSTGRES_PORT: '5432'
+      POSTGRES_DB: monorepo
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     command: >
       sh -lc "
         pnpm install --frozen-lockfile=false &&

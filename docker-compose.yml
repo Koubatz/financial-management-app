@@ -2,24 +2,33 @@ services:
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: Dockerfile
+      target: api-runner
     container_name: monorepo-api
     ports:
       - '3000:3000'
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      PORT: '3000'
+      POSTGRES_HOST: db
+      POSTGRES_PORT: '5432'
+      POSTGRES_DB: monorepo
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     depends_on:
       - db
 
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: Dockerfile
+      target: web-runner
     container_name: monorepo-web
     ports:
       - '5173:80'
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      VITE_API_URL: http://api:3000
     depends_on:
       - api
 
