@@ -42,6 +42,9 @@ importers:
         specifier: ^7.8.1
         version: 7.8.2
     devDependencies:
+      '@eslint/js':
+        specifier: ^9.38.0
+        version: 9.38.0
       '@nestjs/testing':
         specifier: ^10.4.13
         version: 10.4.20(@nestjs/common@10.4.20(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.20)(@nestjs/platform-express@10.4.20)
@@ -51,12 +54,18 @@ importers:
       eslint:
         specifier: ^9.38.0
         version: 9.38.0
+      globals:
+        specifier: ^16.4.0
+        version: 16.4.0
       tsx:
         specifier: ^4.19.2
         version: 4.20.6
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.45.0
+        version: 8.46.2(eslint@9.38.0)(typescript@5.9.3)
       vitest:
         specifier: ^2.1.4
         version: 2.1.9(@types/node@24.9.1)(lightningcss@1.30.2)(terser@5.44.0)
@@ -71,7 +80,7 @@ importers:
         version: 19.2.0(react@19.2.0)
     devDependencies:
       '@eslint/js':
-        specifier: ^9.36.0
+        specifier: ^9.38.0
         version: 9.38.0
       '@types/node':
         specifier: ^24.6.0
