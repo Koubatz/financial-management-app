@@ -14,6 +14,13 @@ async function bootstrap() {
 
 bootstrap().catch((error) => {
   // Surface bootstrap failures clearly so CI/tests can detect them.
-  console.error('Failed to start Nest application', error);
+  if (error instanceof AggregateError) {
+    console.error('Failed to start Nest application due to multiple errors:');
+    for (const err of error.errors) {
+      console.error(err);
+    }
+  } else {
+    console.error('Failed to start Nest application:', error);
+  }
   process.exitCode = 1;
 });
