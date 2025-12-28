@@ -116,7 +116,10 @@ export default function App() {
     <main style={{ maxWidth: '480px', margin: '0 auto', padding: '2rem' }}>
       <h1>Cadastro de Usuários</h1>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}
+      >
         <label style={{ display: 'grid', gap: '0.25rem' }}>
           Nome
           <input
