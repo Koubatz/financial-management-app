@@ -13,13 +13,14 @@ interface TransactionFormData {
   date: string;
 }
 
-interface TransactionModalProps extends React.HTMLAttributes<HTMLDivElement> {
+interface TransactionModalProps {
   open: boolean;
   title?: string;
   description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   categories?: string[];
+  className?: string;
   defaultValues?: Partial<TransactionFormData>;
   closeOnSubmit?: boolean;
   onSubmit?: (data: TransactionFormData) => void;
@@ -116,10 +117,7 @@ function TransactionModal({
     >
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div
-        className={cn(
-          'relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl',
-          className,
-        )}
+        className={cn('relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl', className)}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="space-y-2">
@@ -143,9 +141,7 @@ function TransactionModal({
               placeholder="0,00"
               className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
               value={formData.amount}
-              onChange={(event) =>
-                setFormData((prev) => ({ ...prev, amount: event.target.value }))
-              }
+              onChange={(event) => setFormData((prev) => ({ ...prev, amount: event.target.value }))}
               required
             />
           </label>
@@ -191,9 +187,7 @@ function TransactionModal({
               type="date"
               className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
               value={formData.date}
-              onChange={(event) =>
-                setFormData((prev) => ({ ...prev, date: event.target.value }))
-              }
+              onChange={(event) => setFormData((prev) => ({ ...prev, date: event.target.value }))}
               required
             />
           </label>
