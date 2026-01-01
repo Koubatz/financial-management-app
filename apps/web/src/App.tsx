@@ -1,9 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { MainLayout } from './components/layout/MainLayout';
+import { Dashboard } from './pages/Dashboard';
 
 const DEFAULT_API_URL = 'http://localhost:3000';
 
 type User = {
-  id: number;
+  id: string;
   name: string;
   email: string;
   created_at?: string;
@@ -113,77 +115,17 @@ export default function App() {
   };
 
   return (
-    <main style={{ maxWidth: '480px', margin: '0 auto', padding: '2rem' }}>
-      <h1>Cadastro de Usuários</h1>
-
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}
-      >
-        <label style={{ display: 'grid', gap: '0.25rem' }}>
-          Nome
-          <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Digite o nome"
-            disabled={submitting}
-            required
-          />
-        </label>
-
-        <label style={{ display: 'grid', gap: '0.25rem' }}>
-          E-mail
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="usuario@exemplo.com"
-            disabled={submitting}
-            required
-          />
-        </label>
-
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Salvando...' : 'Adicionar usuário'}
-        </button>
-      </form>
-
-      {formError && (
-        <p role="alert" style={{ color: '#b91c1c', marginBottom: '1rem' }}>
-          {formError}
-        </p>
-      )}
-
-      {successMessage && (
-        <p role="status" style={{ color: '#15803d', marginBottom: '1rem' }}>
-          {successMessage}
-        </p>
-      )}
-
-      <section>
-        <h2>Usuários cadastrados</h2>
-
-        {loading && <p>Carregando usuários...</p>}
-
-        {loadError && !loading && (
-          <p role="alert" style={{ color: '#b91c1c' }}>
-            {loadError}
-          </p>
-        )}
-
-        {!loading && !loadError && users.length === 0 && <p>Nenhum usuário cadastrado.</p>}
-
-        {!loading && !loadError && users.length > 0 && (
-          <ul style={{ paddingLeft: '1.25rem', display: 'grid', gap: '0.5rem' }}>
-            {users.map((user) => (
-              <li key={user.id}>
-                <strong>{user.name}</strong> — {user.email}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </main>
+    <MainLayout>
+      {/* O conteúdo das suas páginas (Dashboard, etc) será renderizado aqui */}
+      <div className="space-y-4">
+        <Dashboard />
+        {/* Exemplo de conteúdo placeholder */}
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-32"></div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-32"></div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-32"></div>
+        </div> */}
+      </div>
+    </MainLayout>
   );
 }

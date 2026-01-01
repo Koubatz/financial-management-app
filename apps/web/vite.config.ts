@@ -1,3 +1,4 @@
+import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -10,5 +11,10 @@ export default defineConfig({
     strictPort: true,
     port: Number(process.env.VITE_PORT) || 5173,
     hmr: { port: 24678 },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
 });

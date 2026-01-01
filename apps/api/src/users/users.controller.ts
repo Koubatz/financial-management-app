@@ -11,6 +11,7 @@ import { UsersService, UserRecord } from './users.service';
 interface CreateUserRequest {
   name?: string;
   email?: string;
+  password?: string;
 }
 
 @Controller('users')
@@ -28,11 +29,28 @@ export class UsersController {
   async create(@Body() body: CreateUserRequest): Promise<UserRecord> {
     const name = body?.name?.trim();
     const email = body?.email?.trim();
+    const password = body?.password;
 
-    if (!name || !email) {
-      throw new BadRequestException('Name and email are required');
+    if (!name || !email || typeof password !== 'string') {
+      throw new BadRequestException('Name, email, and password are required');
     }
 
-    return this.usersService.createUser(name, email);
+    if (password.length < 8) {
+      throw new BadRequestException('Password must be at least 8 characters');
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      throw new BadRequestException(
+        'Password must include at least one uppercase letter',
+      );
+    }
+
+    if (!/[0-9]/.test(password)) {
+      throw new BadRequestException(
+        'Password must include at least one number',
+      );
+    }
+
+    return this.usersService.createUser(name, email, password);
   }
 }

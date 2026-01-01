@@ -1,0 +1,13 @@
+/* Scoped styles for Button component */
+.button-ui {
+  cursor: pointer;
+}
+.button-ui:hover {
+  border-color: #646cff;
+}
+
+/* @media (prefers-color-scheme: light) {
+  .button-ui {
+    background-color: #f9f9f9;
+  }
+} */
