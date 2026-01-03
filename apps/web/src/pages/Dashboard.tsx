@@ -53,10 +53,10 @@ export function DashboardPage() {
     { name: 'Jul', revenue: 3490, expenses: 4300 },
   ];
 
-  const chartConfig = {
-    revenue: { label: 'Revenue', color: theme.colors.chart.revenue },
-    expenses: { label: 'Expenses', color: theme.colors.chart.expenses },
-  };
+  // const chartConfig = {
+  //   revenue: { label: 'Revenue', color: theme.colors.chart.revenue },
+  //   expenses: { label: 'Expenses', color: theme.colors.chart.expenses },
+  // };
 
   // if (true) {
   //   return (
