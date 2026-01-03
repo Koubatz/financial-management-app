@@ -5,13 +5,13 @@ import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { databaseConfigValidationSchema } from './config/database.config';
+import { envValidationSchema } from './config/env.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validationSchema: databaseConfigValidationSchema,
+      validationSchema: envValidationSchema,
     }),
     DatabaseModule,
     UsersModule,

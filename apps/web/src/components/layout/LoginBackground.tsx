@@ -189,7 +189,7 @@ export function LoginBackground() {
   return (
     <div
       className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center z-0"
-      aria-hidden
+      aria-hidden="true"
     >
       <style>{`@-webkit-keyframes loginDotFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } } @keyframes loginDotFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }`}</style>
 

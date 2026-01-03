@@ -52,8 +52,8 @@ export function LoginCard({
       }
     }
 
-    if (!password || password.length < 6) {
-      next.password = 'A senha deve ter ao menos 6 caracteres';
+    if (!password || password.length < 8) {
+      next.password = 'A senha deve ter ao menos 8 caracteres';
     }
 
     setErrors(next);
@@ -176,7 +176,7 @@ export function LoginCard({
             className={`w-full border rounded px-3 py-2 focus:outline-none focus:shadow-outline ${errors.confirmPassword ? 'border-red-500' : ''}`}
           />
           {errors.confirmPassword && (
-            <p id="password-error" className="text-red-500 text-sm mt-1">
+            <p id="confirm-password-error" className="text-red-500 text-sm mt-1">
               {errors.confirmPassword}
             </p>
           )}
@@ -195,7 +195,7 @@ export function LoginCard({
             onToggleMode?.();
           }}
         >
-          {isLogin ? 'Crie uma nova conta' : 'Ja tenho uma conta'}
+          {isLogin ? 'Crie uma nova conta' : 'Já tenho uma conta'}
         </button>
       </div>
 

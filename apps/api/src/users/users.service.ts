@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -47,7 +48,27 @@ export class UsersService {
     return result.rows[0];
   }
 
+  private validateCreateUserInput(name: string, email: string, password: string): void {
+    if (!name || !email || typeof password !== 'string') {
+      throw new BadRequestException('Name, email, and password are required');
+    }
+
+    if (password.length < 8) {
+      throw new BadRequestException('Password must be at least 8 characters');
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      throw new BadRequestException('Password must include at least one uppercase letter');
+    }
+
+    if (!/[0-9]/.test(password)) {
+      throw new BadRequestException('Password must include at least one number');
+    }
+  }
+
   async createUser(name: string, email: string, password: string): Promise<UserRecord> {
+    this.validateCreateUserInput(name, email, password);
+
     const existing = await this.databaseService.query<{ id: string }>(
       'SELECT id FROM users WHERE email = $1 LIMIT 1',
       [email],

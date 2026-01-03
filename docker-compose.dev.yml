@@ -29,6 +29,8 @@ services:
       POSTGRES_DB: monorepo
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
+      JWT_SECRET: 'dev-secret-key-change-in-production'
+      JWT_EXPIRES_IN: '7d'
     command: >
       sh -lc "
         pnpm install --frozen-lockfile=false &&
