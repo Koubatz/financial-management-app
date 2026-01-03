@@ -12,6 +12,7 @@ export interface UserRecord {
   id: string;
   name: string;
   email: string;
+  password_hash?: string;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -28,6 +29,22 @@ export class UsersService {
       'SELECT id, name, email, created_at, updated_at FROM users ORDER BY id DESC',
     );
     return result.rows;
+  }
+
+  async findOne(email: string): Promise<UserRecord | undefined> {
+    const result = await this.databaseService.query<UserRecord>(
+      'SELECT id, name, email, password_hash FROM users WHERE email = $1 LIMIT 1',
+      [email],
+    );
+    return result.rows[0];
+  }
+
+  async findOneById(id: string): Promise<UserRecord | undefined> {
+    const result = await this.databaseService.query<UserRecord>(
+      'SELECT id, name, email, created_at, updated_at FROM users WHERE id = $1 LIMIT 1',
+      [id],
+    );
+    return result.rows[0];
   }
 
   async createUser(name: string, email: string, password: string): Promise<UserRecord> {

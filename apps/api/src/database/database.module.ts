@@ -1,9 +1,10 @@
 import { Logger, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
 import { DatabaseService } from './database.service';
 
 @Module({
+  imports: [ConfigModule],
   providers: [
     {
       provide: 'PG_POOL',

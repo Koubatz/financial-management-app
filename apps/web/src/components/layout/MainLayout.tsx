@@ -15,16 +15,14 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="hidden md:block h-full">
         <Sidebar onTransactionsClick={() => setIsTransactionOpen(true)} />
       </div>
+
       <div className="flex flex-col w-full">
         <div className="flex-1 bg-white rounded-xl m-4">
           <Topbar />
           <main className="px-6">{children}</main>
         </div>
       </div>
-      <TransactionModal
-        open={isTransactionOpen}
-        onClose={() => setIsTransactionOpen(false)}
-      />
+      <TransactionModal open={isTransactionOpen} onClose={() => setIsTransactionOpen(false)} />
     </div>
   );
 }

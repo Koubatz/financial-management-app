@@ -94,6 +94,35 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+type TooltipItem = {
+  dataKey?: string;
+  name?: string | number;
+  value?: number | string;
+  payload?: Record<string, unknown> | undefined;
+  color?: string | undefined;
+  type?: string | undefined;
+};
+
+// Helper to extract color safely from tooltip/legend items
+function extractColorFromItem(
+  item?: TooltipItem | { color?: string; payload?: unknown },
+): string | undefined {
+  if (!item) return undefined;
+
+  // If item has a direct `color` field
+  const maybeColor = (item as TooltipItem).color;
+  if (typeof maybeColor === 'string') return maybeColor;
+
+  // Otherwise check payload.color if it exists
+  const maybePayload = (item as { payload?: unknown }).payload;
+  if (maybePayload && typeof maybePayload === 'object' && 'color' in maybePayload) {
+    const payloadColor = (maybePayload as Record<string, unknown>)['color'];
+    if (typeof payloadColor === 'string') return payloadColor;
+  }
+
+  return undefined;
+}
+
 function ChartTooltipContent({
   active,
   payload,
@@ -117,22 +146,23 @@ function ChartTooltipContent({
     labelKey?: string;
   }) {
   const { config } = useChart();
+  const typedPayload = payload as unknown as TooltipItem[] | undefined;
 
   const tooltipLabel = React.useMemo(() => {
-    if (hideLabel || !payload?.length) {
+    if (hideLabel || !typedPayload?.length) {
       return null;
     }
 
-    const [item] = payload;
+    const [item] = typedPayload ?? [];
     const key = `${labelKey || item?.dataKey || item?.name || 'value'}`;
     const itemConfig = getPayloadConfigFromPayload(config, item, key);
     const value =
       !labelKey && typeof label === 'string' ? config[label]?.label || label : itemConfig?.label;
 
-    if (labelFormatter) {
-      return (
-        <div className={cn('font-medium', labelClassName)}>{labelFormatter(value, payload)}</div>
-      );
+    if (labelFormatter && typeof labelFormatter === 'function') {
+      // Guard and cast to known function signature to avoid unsafe call linting
+      const lf = labelFormatter as (label: unknown, payload?: unknown) => React.ReactNode;
+      return <div className={cn('font-medium', labelClassName)}>{lf(value, typedPayload)}</div>;
     }
 
     if (!value) {
@@ -140,13 +170,13 @@ function ChartTooltipContent({
     }
 
     return <div className={cn('font-medium', labelClassName)}>{value}</div>;
-  }, [label, labelFormatter, payload, hideLabel, labelClassName, config, labelKey]);
+  }, [label, labelFormatter, typedPayload, hideLabel, labelClassName, config, labelKey]);
 
-  if (!active || !payload?.length) {
+  if (!active || !typedPayload?.length) {
     return null;
   }
 
-  const nestLabel = payload.length === 1 && indicator !== 'dot';
+  const nestLabel = (typedPayload?.length ?? 0) === 1 && indicator !== 'dot';
 
   return (
     <div
@@ -157,12 +187,12 @@ function ChartTooltipContent({
     >
       {!nestLabel ? tooltipLabel : null}
       <div className="grid gap-1.5">
-        {payload
-          .filter((item) => item.type !== 'none')
-          .map((item, index) => {
+        {typedPayload
+          ?.filter((item) => item.type !== 'none')
+          .map((item: TooltipItem, index: number) => {
             const key = `${nameKey || item.name || item.dataKey || 'value'}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
-            const indicatorColor = color || item.payload || item.color;
+            const indicatorColor = color ?? extractColorFromItem(item) ?? undefined;
 
             return (
               <div
@@ -172,8 +202,17 @@ function ChartTooltipContent({
                   indicator === 'dot' && 'items-center',
                 )}
               >
-                {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, payload)
+                {typeof formatter === 'function' && item?.value !== undefined && item.name ? (
+                  // Cast formatter to known signature to avoid unsafe call linting
+                  (
+                    formatter as (
+                      value: number | string,
+                      name: string | number,
+                      item: TooltipItem,
+                      index: number,
+                      payload?: TooltipItem[],
+                    ) => React.ReactNode
+                  )(item.value, item.name, item, index, typedPayload)
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -255,61 +294,89 @@ function ChartLegendContent({
         className,
       )}
     >
-      {payload
-        .filter((item) => item.type !== 'none')
-        .map((item) => {
-          const key = `${nameKey || 'value'}`;
-          const itemConfig = getPayloadConfigFromPayload(config, item, key);
+      {(
+        payload as unknown as
+          | Array<{
+              value?: string | number;
+              color?: string;
+              payload?: unknown;
+              name?: string;
+              type?: string;
+            }>
+          | undefined
+      )
+        ?.filter((item) => item.type !== 'none')
+        .map(
+          (item: {
+            value?: string | number;
+            color?: string;
+            payload?: unknown;
+            name?: string;
+            type?: string;
+          }) => {
+            const key = `${nameKey || 'value'}`;
+            const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
-          return (
-            <div
-              key={item.value}
-              className={cn(
-                '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3',
-              )}
-            >
-              {itemConfig?.icon && !hideIcon ? (
-                <itemConfig.icon />
-              ) : (
-                <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
-                />
-              )}
-              {itemConfig?.label}
-            </div>
-          );
-        })}
+            return (
+              <div
+                key={item.value}
+                className={cn(
+                  '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3',
+                )}
+              >
+                {itemConfig?.icon && !hideIcon ? (
+                  <itemConfig.icon />
+                ) : (
+                  <div
+                    className="h-2 w-2 shrink-0 rounded-[2px]"
+                    // Safe: extracting color from third-party payloads; guarded in `extractColorFromItem`
+                    style={{
+                      backgroundColor: extractColorFromItem(item),
+                    }}
+                  />
+                )}
+                {itemConfig?.label}
+              </div>
+            );
+          },
+        )}
     </div>
   );
 }
 
 // Helper to extract item config from a payload.
-function getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, key: string) {
+function getPayloadConfigFromPayload(
+  config: ChartConfig,
+  payload: unknown,
+  key: string,
+): { label?: React.ReactNode; icon?: React.ComponentType | undefined } | undefined {
   if (typeof payload !== 'object' || payload === null) {
     return undefined;
   }
 
+  // Treat payload as record to safely access its properties without propagating `any`
+  const p = payload as Record<string, unknown>;
+
   const payloadPayload =
-    'payload' in payload && typeof payload.payload === 'object' && payload.payload !== null
-      ? payload.payload
+    'payload' in p && typeof p.payload === 'object' && p.payload !== null
+      ? (p.payload as Record<string, unknown>)
       : undefined;
 
   let configLabelKey: string = key;
 
-  if (key in payload && typeof payload[key as keyof typeof payload] === 'string') {
-    configLabelKey = payload[key as keyof typeof payload] as string;
-  } else if (
-    payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string'
-  ) {
-    configLabelKey = payloadPayload[key as keyof typeof payloadPayload] as string;
+  if (key in p && typeof p[key] === 'string') {
+    configLabelKey = String(p[key]);
+  } else if (payloadPayload && key in payloadPayload && typeof payloadPayload[key] === 'string') {
+    configLabelKey = String(payloadPayload[key]);
   }
 
-  return configLabelKey in config ? config[configLabelKey] : config[key];
+  // Return either a config matching the resolved key, or fallback to config keyed by the original key
+  return (configLabelKey in config ? config[configLabelKey] : config[key]) as
+    | {
+        label?: React.ReactNode;
+        icon?: React.ComponentType | undefined;
+      }
+    | undefined;
 }
 
 export {
