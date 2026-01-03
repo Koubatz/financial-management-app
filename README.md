@@ -2,6 +2,13 @@
 
 A personal and business finance management application with web and mobile versions, allowing users to track income, expenses, goals, and financial reports in real time.
 
+## 📚 Documentation
+
+- [**Bundle Optimization Guide**](BUNDLE_OPTIMIZATION.md) - Strategies to reduce bundle size
+- [**Dynamic Imports Solution**](DYNAMIC_IMPORTS_SOLUTION.md) - ✅ Fixed 500kB+ chunks issue
+- [**Tree Shaking Guide**](TREE_SHAKING_GUIDE.md) - Remove unused code from bundle
+- [**JWT Secret Management**](JWT_SECRET_GUIDE.md) - Secure JWT configuration for dev/prod
+
 🚀 Project Objective
 
 Financial Control aims to help users organize their finances in a practical and visual way.
@@ -44,18 +51,18 @@ CI/CD: GitHub Actions
 
 📱 Planned Features
 
- User registration and login
+User registration and login
 
- Dashboard with total balance
+Dashboard with total balance
 
- Income and expense tracking
+Income and expense tracking
 
- Custom categories
+Custom categories
 
- Monthly reports and charts
+Monthly reports and charts
 
- Financial goals
+Financial goals
 
- Web and mobile data synchronization
+Web and mobile data synchronization
 
- Dark mode
+Dark mode

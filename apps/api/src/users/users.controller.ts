@@ -1,23 +1,15 @@
-import {
-  BadRequestException,
-  Body,
-  Controller,
-  Get,
-  Inject,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
 import { UsersService, UserRecord } from './users.service';
 
 interface CreateUserRequest {
-  name?: string;
-  email?: string;
+  name: string;
+  email: string;
+  password: string;
 }
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    @Inject(UsersService) private readonly usersService: UsersService,
-  ) {}
+  constructor(@Inject(UsersService) private readonly usersService: UsersService) {}
 
   @Get()
   async findAll(): Promise<UserRecord[]> {
@@ -28,11 +20,8 @@ export class UsersController {
   async create(@Body() body: CreateUserRequest): Promise<UserRecord> {
     const name = body?.name?.trim();
     const email = body?.email?.trim();
+    const password = body?.password;
 
-    if (!name || !email) {
-      throw new BadRequestException('Name and email are required');
-    }
-
-    return this.usersService.createUser(name, email);
+    return this.usersService.createUser(name, email, password);
   }
 }

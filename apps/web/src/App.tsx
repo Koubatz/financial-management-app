@@ -1,189 +1,60 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-
-const DEFAULT_API_URL = 'http://localhost:3000';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MainLayout } from './components/layout/MainLayout';
+import { DashboardPage } from './pages/Dashboard';
+import { getProfile } from './services/auth';
 
 type User = {
-  id: number;
+  id: string;
   name: string;
   email: string;
   created_at?: string;
   updated_at?: string;
 };
 
-function normalizeBaseUrl(url: string): string {
-  return url.endsWith('/') ? url.slice(0, -1) : url;
-}
-
 export default function App() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [loadError, setLoadError] = useState<string>();
-  const [formError, setFormError] = useState<string>();
-  const [successMessage, setSuccessMessage] = useState<string>();
+  const [token, setToken] = useState<string | null>(null);
+  const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
 
-  const apiBaseUrl = useMemo(() => {
-    const rawEnv = import.meta.env.VITE_API_URL as string | undefined;
-    const sanitized = rawEnv && rawEnv.trim().length > 0 ? rawEnv.trim() : DEFAULT_API_URL;
-    return normalizeBaseUrl(sanitized);
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setToken(storedToken);
+    }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`${apiBaseUrl}/users`);
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+    if (token) {
+      const fetchProfile = async () => {
+        try {
+          const userProfile = await getProfile(token);
+          setProfile(userProfile);
+        } catch (error) {
+          console.error('Failed to fetch profile', error);
+          setToken(null);
+          localStorage.removeItem('token');
+          void navigate('/login');
         }
-
-        const data = (await response.json()) as User[];
-        if (!cancelled) {
-          setUsers(data);
-          setLoadError(undefined);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          const message = error instanceof Error ? error.message : 'Erro desconhecido';
-          setLoadError(`Não foi possível carregar os usuários: ${message}`);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchUsers().catch((error) => {
-      console.error('Failed to load users', error);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [apiBaseUrl]);
-
-  const submitUser = async () => {
-    const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
-
-    if (!trimmedName || !trimmedEmail) {
-      setFormError('Informe nome e e-mail.');
-      return;
+      };
+      void fetchProfile();
+    } else {
+      setProfile(null);
     }
+  }, [token, navigate]);
 
-    setSubmitting(true);
-    setFormError(undefined);
-    setSuccessMessage(undefined);
-
-    try {
-      const response = await fetch(`${apiBaseUrl}/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: trimmedName, email: trimmedEmail }),
-      });
-
-      if (!response.ok) {
-        const message = (await response.text()) || `Request failed with status ${response.status}`;
-        throw new Error(message);
-      }
-
-      const user = (await response.json()) as User;
-      setUsers((current) => [user, ...current]);
-      setName('');
-      setEmail('');
-      setSuccessMessage('Usuário criado com sucesso!');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro desconhecido';
-      setFormError(`Não foi possível criar o usuário: ${message}`);
-    } finally {
-      setSubmitting(false);
+  // Redirect to login page when not authenticated
+  useEffect(() => {
+    if (!loading && !profile) {
+      void navigate('/login');
     }
-  };
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    void submitUser();
-  };
+  }, [loading, profile, navigate]);
 
   return (
-    <main style={{ maxWidth: '480px', margin: '0 auto', padding: '2rem' }}>
-      <h1>Cadastro de Usuários</h1>
-
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}
-      >
-        <label style={{ display: 'grid', gap: '0.25rem' }}>
-          Nome
-          <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Digite o nome"
-            disabled={submitting}
-            required
-          />
-        </label>
-
-        <label style={{ display: 'grid', gap: '0.25rem' }}>
-          E-mail
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="usuario@exemplo.com"
-            disabled={submitting}
-            required
-          />
-        </label>
-
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Salvando...' : 'Adicionar usuário'}
-        </button>
-      </form>
-
-      {formError && (
-        <p role="alert" style={{ color: '#b91c1c', marginBottom: '1rem' }}>
-          {formError}
-        </p>
-      )}
-
-      {successMessage && (
-        <p role="status" style={{ color: '#15803d', marginBottom: '1rem' }}>
-          {successMessage}
-        </p>
-      )}
-
-      <section>
-        <h2>Usuários cadastrados</h2>
-
-        {loading && <p>Carregando usuários...</p>}
-
-        {loadError && !loading && (
-          <p role="alert" style={{ color: '#b91c1c' }}>
-            {loadError}
-          </p>
-        )}
-
-        {!loading && !loadError && users.length === 0 && <p>Nenhum usuário cadastrado.</p>}
-
-        {!loading && !loadError && users.length > 0 && (
-          <ul style={{ paddingLeft: '1.25rem', display: 'grid', gap: '0.5rem' }}>
-            {users.map((user) => (
-              <li key={user.id}>
-                <strong>{user.name}</strong> — {user.email}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </main>
+    <MainLayout>
+      <DashboardPage />
+    </MainLayout>
   );
 }

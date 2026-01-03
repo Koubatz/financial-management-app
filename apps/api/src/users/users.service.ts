@@ -1,10 +1,19 @@
-import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { DatabaseService } from '../database/database.service';
+import * as argon2 from 'argon2';
 
 export interface UserRecord {
-  id: number;
+  id: string;
   name: string;
   email: string;
+  password_hash?: string;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -18,20 +27,69 @@ export class UsersService {
 
   async findAllUsers(): Promise<UserRecord[]> {
     const result = await this.databaseService.query<UserRecord>(
-      'SELECT * FROM users ORDER BY id DESC',
+      'SELECT id, name, email, created_at, updated_at FROM users ORDER BY id DESC',
     );
     return result.rows;
   }
 
-  async createUser(name: string, email: string): Promise<UserRecord> {
+  async findOne(email: string): Promise<UserRecord | undefined> {
     const result = await this.databaseService.query<UserRecord>(
-      'INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *',
-      [name, email],
+      'SELECT id, name, email, password_hash FROM users WHERE email = $1 LIMIT 1',
+      [email],
+    );
+    return result.rows[0];
+  }
+
+  async findOneById(id: string): Promise<UserRecord | undefined> {
+    const result = await this.databaseService.query<UserRecord>(
+      'SELECT id, name, email, created_at, updated_at FROM users WHERE id = $1 LIMIT 1',
+      [id],
+    );
+    return result.rows[0];
+  }
+
+  private validateCreateUserInput(name: string, email: string, password: string): void {
+    if (!name || !email || typeof password !== 'string') {
+      throw new BadRequestException('Name, email, and password are required');
+    }
+
+    if (password.length < 8) {
+      throw new BadRequestException('Password must be at least 8 characters');
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      throw new BadRequestException('Password must include at least one uppercase letter');
+    }
+
+    if (!/[0-9]/.test(password)) {
+      throw new BadRequestException('Password must include at least one number');
+    }
+  }
+
+  async createUser(name: string, email: string, password: string): Promise<UserRecord> {
+    this.validateCreateUserInput(name, email, password);
+
+    const existing = await this.databaseService.query<{ id: string }>(
+      'SELECT id FROM users WHERE email = $1 LIMIT 1',
+      [email],
+    );
+
+    if (existing.rows.length > 0) {
+      throw new ConflictException('Email already exists');
+    }
+
+    const id = randomUUID();
+    const passwordHash = await argon2.hash(password);
+    const result = await this.databaseService.query<UserRecord>(
+      `INSERT INTO users (id, name, email, password_hash)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, name, email, created_at, updated_at`,
+      [id, name, email, passwordHash],
     );
     const [user] = result.rows;
 
     if (!user) {
-      throw new InternalServerErrorException('Failed to create user');
+      throw new InternalServerErrorException('Failed to create user.');
     }
 
     return user;

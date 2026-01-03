@@ -4,16 +4,18 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
-import { databaseConfigValidationSchema } from './config/database.config';
+import { AuthModule } from './auth/auth.module';
+import { envValidationSchema } from './config/env.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validationSchema: databaseConfigValidationSchema,
+      validationSchema: envValidationSchema,
     }),
     DatabaseModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
