@@ -85,3 +85,4 @@ docker-compose.override.yml
 **/Dockerfile.local
 *.pid
 querys
+*.md

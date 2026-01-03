@@ -1,18 +1,13 @@
+import { lazy, Suspense } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ManageCardsSection } from '@/components/layout/ManageCardsSection';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-// import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { theme } from '@/config/theme';
-// import { useAuthStore } from '@/data/authStore';
 import { ChevronsUp } from 'lucide-react';
-import * as Recharts from 'recharts';
+
+// Lazy load chart components to reduce initial bundle
+const ChartSection = lazy(() => import('@/components/dashboard/ChartSection'));
 
 export function DashboardPage() {
   // const profile = useAuthStore((state) => state.profile);
@@ -110,35 +105,15 @@ export function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-2 pt-2">
-          <div className="border rounded-md p-4">
-            <div className="mb-2">
-              <span className="text-sm font-bold tracking-wide">Seus ativos</span>
-            </div>
-
-            <ChartContainer id="overview" config={chartConfig}>
-              <Recharts.AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <Recharts.CartesianGrid strokeDasharray="3 3" />
-                <Recharts.XAxis dataKey="name" />
-                <Recharts.YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <ChartLegend content={<ChartLegendContent />} />
-                <Recharts.Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="var(--color-revenue)"
-                  fill="var(--color-revenue)"
-                  fillOpacity={0.2}
-                />
-                <Recharts.Area
-                  type="monotone"
-                  dataKey="expenses"
-                  stroke="var(--color-expenses)"
-                  fill="var(--color-expenses)"
-                  fillOpacity={0.2}
-                />
-              </Recharts.AreaChart>
-            </ChartContainer>
-          </div>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-64 border rounded-md">
+                <LoadingSpinner />
+              </div>
+            }
+          >
+            <ChartSection data={data} />
+          </Suspense>
         </div>
       </div>
     </MainLayout>
