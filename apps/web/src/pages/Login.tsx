@@ -3,6 +3,8 @@ import { LoginCard } from '@/components/auth/LoginCard';
 import { LoginBackground } from '@/components/layout/LoginBackground';
 import { authOrchestrator } from '@/services/authOrchestrator';
 import { useNavigate } from 'react-router-dom';
+import { useErrorHandler } from '@/hooks/useErrorHandler';
+import { useToast } from '@/hooks/useToast';
 import type { LoginForm, RegisterForm } from '@/types';
 
 export function LoginPage() {
@@ -14,6 +16,8 @@ export function LoginPage() {
   const [successMessage, setSuccessMessage] = useState<string | undefined>();
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
+  const { handleError, handleApiError } = useErrorHandler();
+  const { showSuccess } = useToast();
 
   const handleSubmit = async (): Promise<void> => {
     setSubmitting(true);
@@ -23,10 +27,10 @@ export function LoginPage() {
       if (isLogin) {
         const data = await authOrchestrator.login({ email, password } as LoginForm);
         if (data && typeof data.access_token === 'string') {
-          setSuccessMessage('Login successful!');
+          showSuccess('Login successful!');
           void navigate('/');
         } else {
-          setFormError('Login failed');
+          handleError('Login failed');
         }
       } else {
         // Use the separate username (display name) as `name` and use the email from `email` state
@@ -36,14 +40,14 @@ export function LoginPage() {
           password: password,
         } as RegisterForm);
         if (data && data.id) {
-          setSuccessMessage('Registration successful! Please login.');
+          showSuccess('Registration successful! Please login.');
           setIsLogin(true);
         } else {
-          setFormError('Registration failed');
+          handleError('Registration failed');
         }
       }
     } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Unknown error');
+      handleApiError(err);
     } finally {
       setSubmitting(false);
     }

@@ -84,7 +84,7 @@ export function DashboardPage() {
         </div> */}
         <div className="grid grid-cols-1 gap-4 pt-2 md:grid-cols-4">
           <Card accentColor={theme.colors.accent}>
-            <CardHeader className="text-2xl font-light tracking-wider">Renda total</CardHeader>
+            <CardHeader className="font-semibold text-lg">Renda total</CardHeader>
             <CardContent className="mt-4">
               <div className="flex gap-4">
                 <span className="text-xl font-bold">R$12.345,67</span>
