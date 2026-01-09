@@ -9,17 +9,21 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const [isTransactionOpen, setIsTransactionOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
     <div className="flex bg-gray-200 h-screen overflow-hidden">
-      <Sidebar onTransactionsClick={() => setIsTransactionOpen(true)} />
+      <Sidebar
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileClose={() => setIsMobileSidebarOpen(false)}
+      />
 
       <div
         className="flex flex-col bg-white rounded-xl m-4 w-screen"
         style={{ height: 'calc(100% - 32px)' }}
       >
-        <Topbar />
-        <main className="px-6 pb-6 overflow-auto">{children}</main>
+        <Topbar onMenuClick={() => setIsMobileSidebarOpen(true)} />
+        <main className="p-6 overflow-auto">{children}</main>
       </div>
 
       <TransactionModal open={isTransactionOpen} onClose={() => setIsTransactionOpen(false)} />

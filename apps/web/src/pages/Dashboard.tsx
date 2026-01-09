@@ -1,110 +1,183 @@
-import { lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { ManageCardsSection } from '@/components/layout/ManageCardsSection';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { theme } from '@/config/theme';
-import { ChevronsUp } from 'lucide-react';
-
-// Lazy load chart components to reduce initial bundle
-const ChartSection = lazy(() => import('@/components/dashboard/ChartSection'));
+import { TransactionModal } from '@/components/ui/transaction-modal';
+import { DashboardFilters, type PeriodFilter } from '@/components/dashboard/DashboardFilters';
+import { SummaryCards } from '@/components/dashboard/SummaryCards';
+import { WalletsOverview } from '@/components/dashboard/WalletsOverview';
+import { RecentTransactions } from '@/components/dashboard/RecentTransactions';
+import { transactionsApi, type Transaction } from '@/services/transactions';
+import { walletsApi, type Wallet } from '@/services/wallets';
+import { useToast } from '@/hooks/useToast';
+import { useNavigate } from 'react-router-dom';
 
 export function DashboardPage() {
-  // const profile = useAuthStore((state) => state.profile);
-  // const loading = useAuthStore((state) => state.loading);
-  // const [loading, setLoading] = useState(true);
-  // const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>('current-month');
+  const [selectedWallet, setSelectedWallet] = useState<string>('all');
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const { showError } = useToast();
+  const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem('token');
-  //   if (token) {
-  //     const fetchProfile = async () => {
-  //       setLoading(true);
-  //       try {
-  //         const userProfile = await getProfile(token);
-  //         setProfile(userProfile);
-  //       } catch (error) {
-  //         console.error('Failed to fetch profile', error);
-  //         localStorage.removeItem('token');
-  //         await navigate('/login');
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     };
-  //     void fetchProfile();
-  //   } else {
-  //     // No token, redirect to login
-  //     void navigate('/login');
-  //   }
-  // }, [navigate]);
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [transactionsData, walletsData] = await Promise.all([
+        transactionsApi.getAll(),
+        walletsApi.getAll(),
+      ]);
+      setTransactions(transactionsData);
+      setWallets(walletsData);
+    } catch {
+      showError('Erro ao carregar dados do dashboard');
+    } finally {
+      setLoading(false);
+    }
+  }, [showError]);
 
-  // const handleLogout = async () => {
-  //   localStorage.removeItem('token');
-  //   await navigate('/login');
-  // };
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
 
-  const data = [
-    { name: 'Jan', revenue: 4000, expenses: 2400 },
-    { name: 'Feb', revenue: 3000, expenses: 1398 },
-    { name: 'Mar', revenue: 2000, expenses: 9800 },
-    { name: 'Apr', revenue: 2780, expenses: 3908 },
-    { name: 'May', revenue: 1890, expenses: 4800 },
-    { name: 'Jun', revenue: 2390, expenses: 3800 },
-    { name: 'Jul', revenue: 3490, expenses: 4300 },
-  ];
+  // Calcular período baseado no filtro
+  const getPeriodDates = () => {
+    const now = new Date();
+    let startDate = new Date();
 
-  // const chartConfig = {
-  //   revenue: { label: 'Revenue', color: theme.colors.chart.revenue },
-  //   expenses: { label: 'Expenses', color: theme.colors.chart.expenses },
-  // };
+    switch (selectedPeriod) {
+      case 'last-7-days':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case 'last-30-days':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case 'current-month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      default:
+        startDate.setDate(now.getDate() - 30);
+    }
 
-  // if (true) {
-  //   return (
-  //     <div className="flex w-full h-full items-center justify-center py-16">
-  //       <LoadingSpinner size={100} />
-  //     </div>
-  //   );
-  // }
+    return { startDate, endDate: now };
+  };
 
-  // if (!profile) {
-  //   return null;
-  // }
+  const { startDate, endDate } = getPeriodDates();
+
+  // Filtrar transações por período e carteira
+  const filteredTransactions = transactions.filter((t) => {
+    const transactionDate = new Date(t.date);
+    const inPeriod = transactionDate >= startDate && transactionDate <= endDate;
+    const inWallet = selectedWallet === 'all' || t.walletId === selectedWallet;
+    return inPeriod && inWallet && t.status !== 'CANCELED';
+  });
+
+  // Calcular métricas
+  const income = filteredTransactions
+    .filter((t) => t.type === 'INCOME')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const expenses = filteredTransactions
+    .filter((t) => t.type === 'EXPENSE')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const savings = income - expenses;
+
+  // Preparar dados de carteiras com resumo
+  const walletsWithSummary = wallets.map((wallet) => {
+    const walletTransactions = filteredTransactions.filter((t) => t.walletId === wallet.id);
+    const walletIncome = walletTransactions
+      .filter((t) => t.type === 'INCOME')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const walletExpenses = walletTransactions
+      .filter((t) => t.type === 'EXPENSE')
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    // Calcular saldo atual: initialBalance + todas as transações até agora
+    const allWalletTransactions = transactions.filter((t) => t.walletId === wallet.id);
+    const balance =
+      wallet.initialBalance +
+      allWalletTransactions.reduce((sum, t) => {
+        if (t.type === 'INCOME') return sum + t.amount;
+        if (t.type === 'EXPENSE') return sum - t.amount;
+        return sum;
+      }, 0);
+
+    return {
+      id: wallet.id,
+      name: wallet.name,
+      balance,
+      type: wallet.walletType,
+      currency: wallet.currency,
+      income: walletIncome,
+      expenses: walletExpenses,
+    };
+  });
+
+  const totalBalance = walletsWithSummary
+    .filter((w) => selectedWallet === 'all' || w.id === selectedWallet)
+    .reduce((sum, w) => sum + w.balance, 0);
+
+  // Últimas 10 transações
+  const recentTransactions = [...filteredTransactions]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 10);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <LoadingSpinner />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
-      <div className="grid grid-cols-1 gap-4 pt-2 md:grid-cols-4">
-        <Card accentColor={theme.colors.accent}>
-          <CardHeader className="font-semibold text-lg">Renda total</CardHeader>
-          <CardContent className="mt-4">
-            <div className="flex gap-4">
-              <span className="text-xl font-bold">R$12.345,67</span>
-              <div className="flex p-1 gap-1 rounded-md bg-green-500/20">
-                <ChevronsUp className="font-medium text-green-800" />
-                <span className="font-medium text-green-800">57%</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <span className="text-sm text-muted-foreground">
-              Aumentou em relação ao mês anterior
-            </span>
-          </CardFooter>
-        </Card>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Visão geral das suas finanças</p>
+        </div>
 
-        <ManageCardsSection />
+        {/* Filtros */}
+        <DashboardFilters
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={setSelectedPeriod}
+          selectedWallet={selectedWallet}
+          onWalletChange={setSelectedWallet}
+          wallets={wallets.map((w) => ({ id: w.id, name: w.name }))}
+          onNewTransaction={() => setIsTransactionModalOpen(true)}
+          onNewTransfer={() => setIsTransactionModalOpen(true)}
+          onNewWallet={() => void navigate('/wallets')}
+        />
+
+        {/* Cards de Resumo */}
+        <SummaryCards
+          totalBalance={totalBalance}
+          income={income}
+          expenses={expenses}
+          savings={savings}
+        />
+
+        {/* Carteiras */}
+        <WalletsOverview
+          wallets={walletsWithSummary}
+          onAddTransaction={() => setIsTransactionModalOpen(true)}
+        />
+
+        {/* Últimas Transações */}
+        <RecentTransactions transactions={recentTransactions} />
       </div>
 
-      <div className="grid grid-cols-2 pt-2">
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center h-64 border rounded-md">
-              <LoadingSpinner />
-            </div>
-          }
-        >
-          <ChartSection data={data} />
-        </Suspense>
-      </div>
+      {/* Modal de Transação */}
+      <TransactionModal
+        open={isTransactionModalOpen}
+        onClose={() => setIsTransactionModalOpen(false)}
+      />
     </MainLayout>
   );
 }

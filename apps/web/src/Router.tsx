@@ -7,6 +7,10 @@ import { LoadingSpinner } from './components/ui/loading-spinner';
 const DashboardPage = lazy(() =>
   import('./pages/Dashboard').then((m) => ({ default: m.DashboardPage })),
 );
+const WalletsPage = lazy(() => import('./pages/Wallets').then((m) => ({ default: m.WalletsPage })));
+const TransactionsPage = lazy(() =>
+  import('./pages/Transactions').then((m) => ({ default: m.TransactionsPage })),
+);
 const LoginPage = lazy(() => import('./pages/Login').then((m) => ({ default: m.LoginPage })));
 const ThemeShowcase = lazy(() =>
   import('./pages/ThemeShowcase').then((m) => ({ default: m.ThemeShowcase })),
@@ -38,8 +42,25 @@ export function Router() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/wallets"
+            element={
+              <ProtectedRoute>
+                <WalletsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <ProtectedRoute>
+                <TransactionsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/theme" element={<ThemeShowcase />} />
+          <Route path="*" element={<Root />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

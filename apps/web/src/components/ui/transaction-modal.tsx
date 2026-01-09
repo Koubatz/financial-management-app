@@ -2,6 +2,8 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 type TransactionType = 'credit' | 'debit';
@@ -105,6 +107,13 @@ function TransactionModal({
     }
   };
 
+  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // Fechar apenas se clicar no backdrop, não em elementos filhos
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -112,10 +121,10 @@ function TransactionModal({
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={description ? descriptionId : undefined}
-      onClick={onClose}
+      onClick={handleBackdropClick}
       {...props}
     >
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-none" />
       <div
         className={cn('relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl', className)}
         onClick={(event) => event.stopPropagation()}
@@ -131,66 +140,52 @@ function TransactionModal({
           ) : null}
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
-          <label className="grid gap-2 text-sm font-medium text-foreground">
-            Valor
-            <input
-              type="number"
-              step="0.01"
-              inputMode="decimal"
-              placeholder="0,00"
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={formData.amount}
-              onChange={(event) => setFormData((prev) => ({ ...prev, amount: event.target.value }))}
-              required
-            />
-          </label>
+        <form onSubmit={handleSubmit} className="mt-2 grid gap-4">
+          <Input
+            label="Valor"
+            type="number"
+            step="0.01"
+            inputMode="decimal"
+            placeholder="0,00"
+            value={formData.amount}
+            onChange={(event) => setFormData((prev) => ({ ...prev, amount: event.target.value }))}
+            required
+          />
 
-          <label className="grid gap-2 text-sm font-medium text-foreground">
-            Tipo de operação
-            <select
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={formData.type}
-              onChange={(event) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  type: event.target.value as TransactionType,
-                }))
-              }
-            >
-              <option value="credit">Crédito</option>
-              <option value="debit">Débito</option>
-            </select>
-          </label>
+          <Select
+            label="Tipo de operação"
+            value={formData.type}
+            onChange={(event) =>
+              setFormData((prev) => ({
+                ...prev,
+                type: event.target.value as TransactionType,
+              }))
+            }
+          >
+            <option value="credit">Crédito</option>
+            <option value="debit">Débito</option>
+          </Select>
 
-          <label className="grid gap-2 text-sm font-medium text-foreground">
-            Categoria
-            <select
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={formData.category}
-              onChange={(event) =>
-                setFormData((prev) => ({ ...prev, category: event.target.value }))
-              }
-              required
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select
+            label="Categoria"
+            value={formData.category}
+            onChange={(event) => setFormData((prev) => ({ ...prev, category: event.target.value }))}
+            required
+          >
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </Select>
 
-          <label className="grid gap-2 text-sm font-medium text-foreground">
-            Data da operação
-            <input
-              type="date"
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={formData.date}
-              onChange={(event) => setFormData((prev) => ({ ...prev, date: event.target.value }))}
-              required
-            />
-          </label>
+          <Input
+            label="Data da operação"
+            type="date"
+            value={formData.date}
+            onChange={(event) => setFormData((prev) => ({ ...prev, date: event.target.value }))}
+            required
+          />
 
           <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={onClose}>

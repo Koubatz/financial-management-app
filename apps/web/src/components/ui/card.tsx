@@ -10,16 +10,10 @@ function Card({
   return (
     <div
       data-slot="card"
-      className={cn(
-        'group pt-3 rounded-md border transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
-        className,
-      )}
+      className={cn('group pt-3 rounded-md border', className)}
       style={{ backgroundColor: accentColor || 'black', borderColor: accentColor || 'black' }}
     >
-      <div
-        className="h-full bg-white rounded-sm py-4 transition-all duration-300 group-hover:bg-white/90 group-hover:backdrop-blur-sm"
-        {...props}
-      />
+      <div className="h-full bg-white rounded-sm py-4" {...props} />
     </div>
   );
 }
