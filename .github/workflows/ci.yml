@@ -28,15 +28,11 @@ jobs:
 
       - name: Create Pull Request
         if: ${{ success() && github.event_name == 'push' && github.ref != 'refs/heads/main' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          BRANCH="${{ github.ref_name }}"
-          REPO="${{ github.repository }}"
-
-          # Check if an open PR from this branch to main already exists
-          if ! gh pr list --repo "$REPO" --state open --base main --head "$BRANCH" --json number --jq 'length>0'; then
-            gh pr create --repo "$REPO" --base main --head "$BRANCH" \
-              --title "Automated PR from CI" \
-              --body "This PR was created automatically after successful CI checks."
-          fi
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'Automated commit from CI'
+          title: 'Automated PR from CI'
+          body: 'This PR was created automatically after successful CI checks.'
+          branch: ${{ github.ref_name }}
+          base: main
+          token: ${{ github.token }}
