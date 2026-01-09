@@ -3,9 +3,30 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
+// Plugin to strip sourcemap comments from lucide-react to avoid ENOENT warnings
+const stripLucideSourcemapPlugin = {
+  name: 'strip-lucide-sourcemap',
+  apply: 'serve' as const,
+  enforce: 'pre' as const,
+  transform(code: string, id: string) {
+    if (
+      id.includes('lucide-react/dist/esm') ||
+      id.includes('tailwind-merge/dist') ||
+      id.includes('@radix-ui/react-slot/dist') ||
+      id.includes('fast-equals/dist/es') ||
+      id.includes('cookie/dist')
+    ) {
+      return {
+        code: code.replace(/\/\/# sourceMappingURL=.*$/gm, ''),
+        map: null,
+      };
+    }
+  },
+};
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [stripLucideSourcemapPlugin, react(), tailwindcss()],
   server: {
     host: true,
     strictPort: true,
@@ -58,17 +79,8 @@ export default defineConfig({
     },
     // Limites de tamanho com warnings
     chunkSizeWarningLimit: 500,
-    // Usar minificação mais agressiva
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-      format: {
-        comments: false,
-      },
-    },
+    // Usar minificação via esbuild (compatível com opções de "drop")
+    minify: true,
     // Target específico para reduzir transpilação
     target: 'esnext',
     // Relatório de tamanho de bundle
@@ -76,6 +88,7 @@ export default defineConfig({
   },
   // Otimização de dependências
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'recharts', 'lucide-react'],
+    include: ['react', 'react-dom', 'react-router-dom', 'recharts', 'cookie'],
+    exclude: ['lucide-react', 'tailwind-merge', '@radix-ui/react-slot', 'fast-equals'], // Exclude to ensure transform plugin always runs
   },
 });

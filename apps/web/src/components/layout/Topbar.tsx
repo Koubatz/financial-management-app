@@ -47,7 +47,7 @@ export function Topbar() {
         {/* <hr className="h-8 w-px bg-gray-200" /> */}
 
         <div className="flex items-center gap-3 pl-2 cursor-pointer">
-          <div className="text-right hidden md:block">
+          <div className="text-right">
             <p className="text-sm font-medium text-gray-700">{displayName}</p>
             <p className="text-xs text-gray-500">{displayEmail}</p>
           </div>
