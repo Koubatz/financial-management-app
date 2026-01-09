@@ -72,49 +72,38 @@ export function DashboardPage() {
 
   return (
     <MainLayout>
-      <div className="space-y-4">
-        {/* <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Welcome, {profile.name}</h1>
-          <button
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        </div> */}
-        <div className="grid grid-cols-1 gap-4 pt-2 md:grid-cols-4">
-          <Card accentColor={theme.colors.accent}>
-            <CardHeader className="font-semibold text-lg">Renda total</CardHeader>
-            <CardContent className="mt-4">
-              <div className="flex gap-4">
-                <span className="text-xl font-bold">R$12.345,67</span>
-                <div className="flex p-1 gap-1 rounded-md bg-green-500/20">
-                  <ChevronsUp className="font-medium text-green-800" />
-                  <span className="font-medium text-green-800">57%</span>
-                </div>
+      <div className="grid grid-cols-1 gap-4 pt-2 md:grid-cols-4">
+        <Card accentColor={theme.colors.accent}>
+          <CardHeader className="font-semibold text-lg">Renda total</CardHeader>
+          <CardContent className="mt-4">
+            <div className="flex gap-4">
+              <span className="text-xl font-bold">R$12.345,67</span>
+              <div className="flex p-1 gap-1 rounded-md bg-green-500/20">
+                <ChevronsUp className="font-medium text-green-800" />
+                <span className="font-medium text-green-800">57%</span>
               </div>
-            </CardContent>
-            <CardFooter>
-              <span className="text-sm text-muted-foreground">
-                Aumentou em relação ao mês anterior
-              </span>
-            </CardFooter>
-          </Card>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <span className="text-sm text-muted-foreground">
+              Aumentou em relação ao mês anterior
+            </span>
+          </CardFooter>
+        </Card>
 
-          <ManageCardsSection />
-        </div>
+        <ManageCardsSection />
+      </div>
 
-        <div className="grid grid-cols-2 pt-2">
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center h-64 border rounded-md">
-                <LoadingSpinner />
-              </div>
-            }
-          >
-            <ChartSection data={data} />
-          </Suspense>
-        </div>
+      <div className="grid grid-cols-2 pt-2">
+        <Suspense
+          fallback={
+            <div className="flex items-center justify-center h-64 border rounded-md">
+              <LoadingSpinner />
+            </div>
+          }
+        >
+          <ChartSection data={data} />
+        </Suspense>
       </div>
     </MainLayout>
   );

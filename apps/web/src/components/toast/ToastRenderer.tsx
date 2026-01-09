@@ -15,6 +15,7 @@ export function ToastRenderer() {
           message={toast.message}
           onClose={() => removeToast(toast.id)}
           duration={toast.duration}
+          type={toast.type}
         />
       ))}
     </ToastContainer>

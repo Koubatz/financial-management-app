@@ -1,4 +1,4 @@
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -7,9 +7,16 @@ interface ErrorToastProps {
   onClose?: () => void;
   duration?: number;
   className?: string;
+  type?: 'error' | 'success' | 'warning' | 'info';
 }
 
-export function ErrorToast({ message, onClose, duration = 5000, className }: ErrorToastProps) {
+export function ErrorToast({
+  message,
+  onClose,
+  duration = 5000,
+  className,
+  type = 'error',
+}: ErrorToastProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   const handleClose = useCallback(() => {
@@ -31,10 +38,50 @@ export function ErrorToast({ message, onClose, duration = 5000, className }: Err
 
   if (!isVisible) return null;
 
+  const stylesByType = {
+    error: {
+      bg: 'bg-red-500',
+      iconText: 'text-red-500',
+      hover: 'hover:bg-red-600',
+    },
+    success: {
+      bg: 'bg-green-500',
+      iconText: 'text-green-500',
+      hover: 'hover:bg-green-600',
+    },
+    warning: {
+      bg: 'bg-yellow-500',
+      iconText: 'text-yellow-500',
+      hover: 'hover:bg-yellow-600',
+    },
+    info: {
+      bg: 'bg-blue-500',
+      iconText: 'text-blue-500',
+      hover: 'hover:bg-blue-600',
+    },
+  } as const;
+
+  let Icon = AlertCircle;
+  switch (type) {
+    case 'success':
+      Icon = CheckCircle;
+      break;
+    case 'warning':
+      Icon = AlertTriangle;
+      break;
+    case 'info':
+      Icon = Info;
+      break;
+    default:
+      Icon = AlertCircle;
+  }
+  const t = stylesByType[type];
+
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-2xl bg-red-500 px-4 py-3 shadow-lg',
+        'flex items-center gap-3 rounded-2xl px-4 py-3 shadow-lg',
+        t.bg,
         'animate-in slide-in-from-top-5 fade-in duration-300',
         !isVisible && 'animate-out slide-out-to-top-5 fade-out',
         className,
@@ -44,7 +91,7 @@ export function ErrorToast({ message, onClose, duration = 5000, className }: Err
       {/* Icon */}
       <div className="flex-shrink-0">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white">
-          <AlertCircle className="h-5 w-5 text-red-500" />
+          <Icon className={cn('h-5 w-5', t.iconText)} />
         </div>
       </div>
 
@@ -54,7 +101,7 @@ export function ErrorToast({ message, onClose, duration = 5000, className }: Err
       {/* Close button */}
       <button
         onClick={handleClose}
-        className="flex-shrink-0 rounded-md p-1 text-white transition-colors hover:bg-red-600"
+        className={cn('flex-shrink-0 rounded-md p-1 text-white transition-colors', t.hover)}
         aria-label="Close notification"
       >
         <X className="h-5 w-5" />
