@@ -324,7 +324,7 @@ export class WalletsService {
       normalized.is_primary = Boolean(payload.isPrimary);
     }
 
-    if (payload.status !== undefined) {
+    if ('status' in payload && payload.status !== undefined) {
       if (!WalletsService.allowedStatuses.includes(payload.status)) {
         throw new BadRequestException('Invalid status');
       }
