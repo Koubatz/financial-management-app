@@ -12,3 +12,8 @@ jobs:
       - run: pnpm i
       - run: pnpm lint
       - run: pnpm build
+      - name: Create Pull Request
+        run: |
+          if [ -z "$(gh pr list --state open --base main --head ${{ github.ref }})" ]; then
+            gh pr create --base main --head ${{ github.ref }} --title "Automated PR from CI" --body "This PR was created automatically after successful CI checks.";
+          fi
