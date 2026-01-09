@@ -9,12 +9,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y software-properties-common
-          add-apt-repository -y ppa:git-core/ppa
-          apt-get install -y git
+      # - name: Install dependencies
+      #   run: |
+      #     apt-get update
+      #     apt-get install -y software-properties-common
+      #     add-apt-repository -y ppa:git-core/ppa
+      #     apt-get install -y git
 
       - uses: actions/checkout@v6
 
