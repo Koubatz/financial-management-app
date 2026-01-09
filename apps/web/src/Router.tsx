@@ -11,6 +11,9 @@ const WalletsPage = lazy(() => import('./pages/Wallets').then((m) => ({ default:
 const TransactionsPage = lazy(() =>
   import('./pages/Transactions').then((m) => ({ default: m.TransactionsPage })),
 );
+const CreditCardsPage = lazy(() =>
+  import('./pages/CreditCards').then((m) => ({ default: m.CreditCardsPage })),
+);
 const LoginPage = lazy(() => import('./pages/Login').then((m) => ({ default: m.LoginPage })));
 const ThemeShowcase = lazy(() =>
   import('./pages/ThemeShowcase').then((m) => ({ default: m.ThemeShowcase })),
@@ -55,6 +58,14 @@ export function Router() {
             element={
               <ProtectedRoute>
                 <TransactionsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/credito-card"
+            element={
+              <ProtectedRoute>
+                <CreditCardsPage />
               </ProtectedRoute>
             }
           />

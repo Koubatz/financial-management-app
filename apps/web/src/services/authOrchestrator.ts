@@ -7,6 +7,8 @@ const TOKEN_STORAGE_KEY = 'token';
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : 'Unknown error';
 
+let bootstrapPromise: Promise<User | null> | null = null;
+
 const clearSession = (error?: unknown) => {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   authStore.setState({
@@ -32,7 +34,18 @@ const loadProfile = async (token: string): Promise<User> => {
 
 export const authOrchestrator = {
   async bootstrap(): Promise<User | null> {
+    // Se já está em execução, retorna a mesma promise
+    if (bootstrapPromise) {
+      return bootstrapPromise;
+    }
+
     const currentState = authStore.getState();
+
+    // Se já foi inicializado, retorna o perfil atual
+    if (currentState.initialized) {
+      return currentState.profile;
+    }
+
     const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
 
     if (!storedToken) {
@@ -58,14 +71,20 @@ export const authOrchestrator = {
       error: null,
     });
 
-    try {
-      const profile = await getProfile(storedToken);
-      authStore.setState({ profile, loading: false });
-      return profile;
-    } catch (error) {
-      clearSession(error);
-      return null;
-    }
+    bootstrapPromise = (async () => {
+      try {
+        const profile = await getProfile(storedToken);
+        authStore.setState({ profile, loading: false });
+        return profile;
+      } catch (error) {
+        clearSession(error);
+        return null;
+      } finally {
+        bootstrapPromise = null;
+      }
+    })();
+
+    return bootstrapPromise;
   },
 
   async login(form: LoginForm): Promise<AuthResponse> {
