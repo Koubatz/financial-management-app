@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { SearchInput } from '@/components/ui/search-input';
 import { useAuthStore } from '@/data/authStore';
-import { Bell } from 'lucide-react';
+import { Bell, Menu } from 'lucide-react';
 
 const getInitials = (name?: string | null) => {
   if (!name) {
@@ -17,7 +17,11 @@ const getInitials = (name?: string | null) => {
   return initials || 'UD';
 };
 
-export function Topbar() {
+interface TopbarProps {
+  onMenuClick?: () => void;
+}
+
+export function Topbar({ onMenuClick }: TopbarProps) {
   const profile = useAuthStore((state) => state.profile);
   const loading = useAuthStore((state) => state.loading);
   const displayName = profile?.name ?? 'Usuário Demo';
@@ -25,17 +29,29 @@ export function Topbar() {
   const initials = getInitials(profile?.name);
 
   return (
-    <header className="h-20 bg-white flex items-center justify-between px-6 sticky top-0 z-10 rounded-t-xl">
+    <header className="bg-white flex items-center justify-between p-6 sticky top-0 z-10 rounded-t-xl">
+      {/* Hamburger Menu for Mobile */}
+      <button
+        onClick={onMenuClick}
+        className="lg:hidden p-2 -ml-2 text-gray-700 hover:bg-gray-100 rounded-md"
+        aria-label="Abrir menu"
+      >
+        <Menu size={24} />
+      </button>
+
       {/* Lado Esquerdo: Barra de Busca */}
-      <span className="text-2xl font-bold">
+      <span className="text-2xl font-bold hidden lg:block">
         {loading ? 'Carregando...' : `Bem-vindo, ${displayName}`}
+      </span>
+      <span className="text-lg font-bold lg:hidden">
+        {loading ? 'Carregando...' : displayName.split(' ')[0]}
       </span>
 
       {/* <span className="text-2xl font-bold">{`Bem-vindo, ${displayName}`}</span> */}
 
       {/* Lado Direito: Notificações e Perfil */}
-      <div className="flex items-center gap-4">
-        <SearchInput placeholder="Buscar..." />
+      <div className="flex items-center gap-2 lg:gap-4">
+        <SearchInput placeholder="Buscar..." className="hidden md:block" />
 
         {/* <hr className="h-8 w-px bg-gray-200" /> */}
 
@@ -47,7 +63,7 @@ export function Topbar() {
         {/* <hr className="h-8 w-px bg-gray-200" /> */}
 
         <div className="flex items-center gap-3 pl-2 cursor-pointer">
-          <div className="text-right">
+          <div className="text-right hidden md:block">
             <p className="text-sm font-medium text-gray-700">{displayName}</p>
             <p className="text-xs text-gray-500">{displayEmail}</p>
           </div>

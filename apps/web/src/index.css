@@ -5,7 +5,7 @@
 
 *::-webkit-scrollbar-track {
   background: #fff; /* color of the tracking area */
-  border-radius: 0 0 14px 0; /* roundness of the tracking area */
+  border-radius: 0 14px 14px 0; /* roundness of the tracking area */
 }
 
 *::-webkit-scrollbar-thumb {

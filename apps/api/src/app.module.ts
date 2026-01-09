@@ -6,6 +6,8 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { envValidationSchema } from './config/env.config';
+import { WalletsModule } from './wallets/wallets.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { envValidationSchema } from './config/env.config';
     DatabaseModule,
     UsersModule,
     AuthModule,
+    WalletsModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
