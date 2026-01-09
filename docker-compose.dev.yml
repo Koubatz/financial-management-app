@@ -75,6 +75,7 @@ services:
       - '5432:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
 
 volumes:
   pnpm-store:

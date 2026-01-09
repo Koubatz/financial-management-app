@@ -1,0 +1,118 @@
+SELECT id,
+       name,
+       email,
+       password_hash,
+       created_at,
+       updated_at
+FROM public.users
+LIMIT 1000;
+
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+  id uuid PRIMARY KEY,
+  name text NOT NULL,
+  email text NOT NULL UNIQUE,
+  password_hash text NOT NULL,
+  created_at timestamp DEFAULT now(),
+  updated_at timestamp DEFAULT now()
+);
+
+-- Wallets
+DROP TABLE IF EXISTS wallets;
+DROP TYPE IF EXISTS wallet_type;
+DROP TYPE IF EXISTS wallet_status;
+DROP TYPE IF EXISTS bank_account_type;
+
+CREATE TYPE wallet_type AS ENUM ('CASH', 'BANK', 'CREDIT_CARD', 'INVESTMENT');
+CREATE TYPE wallet_status AS ENUM ('ACTIVE', 'ARCHIVED');
+CREATE TYPE bank_account_type AS ENUM ('CHECKING', 'SAVINGS');
+
+CREATE TABLE wallets (
+  id uuid PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES users (id),
+  name text NOT NULL,
+  wallet_type wallet_type NOT NULL,
+  currency varchar(5) NOT NULL,
+  initial_balance numeric(14, 2) NOT NULL DEFAULT 0,
+  description text,
+  institution text,
+  is_primary boolean NOT NULL DEFAULT false,
+  status wallet_status NOT NULL DEFAULT 'ACTIVE',
+  credit_limit numeric(14, 2),
+  billing_close_day smallint,
+  billing_due_day smallint,
+  account_type bank_account_type,
+  bank_name text,
+  digital_wallet_provider text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  archived_at timestamptz,
+  CONSTRAINT billing_close_day_range CHECK (billing_close_day IS NULL OR billing_close_day BETWEEN 1 AND 31),
+  CONSTRAINT billing_due_day_range CHECK (billing_due_day IS NULL OR billing_due_day BETWEEN 1 AND 31),
+  CONSTRAINT credit_limit_non_negative CHECK (credit_limit IS NULL OR credit_limit >= 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_wallets_user_id ON wallets (user_id);
+CREATE INDEX IF NOT EXISTS idx_wallets_status ON wallets (status);
+CREATE INDEX IF NOT EXISTS idx_wallets_primary ON wallets (user_id, is_primary) WHERE is_primary;
+
+-- Transactions
+DROP TABLE IF EXISTS transactions;
+DROP TYPE IF EXISTS transaction_type;
+DROP TYPE IF EXISTS transaction_status;
+DROP TYPE IF EXISTS payment_method;
+
+CREATE TYPE transaction_type AS ENUM ('INCOME', 'EXPENSE', 'TRANSFER');
+CREATE TYPE transaction_status AS ENUM ('PENDING', 'COMPLETED', 'CANCELED');
+CREATE TYPE payment_method AS ENUM ('CASH', 'DEBIT', 'CREDIT', 'PIX', 'BANK_TRANSFER', 'OTHER');
+
+CREATE TABLE transactions (
+  id uuid PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES users (id),
+  wallet_id uuid NOT NULL REFERENCES wallets (id),
+  type transaction_type NOT NULL,
+  amount numeric(12, 2) NOT NULL,
+  date timestamptz NOT NULL,
+  description text NOT NULL,
+  category_id uuid,
+  status transaction_status NOT NULL DEFAULT 'COMPLETED',
+  notes text,
+  payment_method payment_method,
+  reference varchar(255),
+  tags jsonb,
+  is_recurring boolean NOT NULL DEFAULT false,
+  recurring_id uuid,
+  installment_number smallint,
+  total_installments smallint,
+  source_wallet_id uuid REFERENCES wallets (id),
+  destination_wallet_id uuid REFERENCES wallets (id),
+  credit_card_id uuid,
+  invoice_id uuid,
+  invoice_month varchar(7),
+  is_paid boolean DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  deleted_at timestamptz,
+  CONSTRAINT amount_positive CHECK (amount > 0),
+  CONSTRAINT installment_valid CHECK (
+    (installment_number IS NULL AND total_installments IS NULL) OR
+    (installment_number IS NOT NULL AND total_installments IS NOT NULL AND 
+     installment_number > 0 AND total_installments > 0 AND 
+     installment_number <= total_installments)
+  ),
+  CONSTRAINT transfer_wallets_check CHECK (
+    (type != 'TRANSFER') OR 
+    (type = 'TRANSFER' AND source_wallet_id IS NOT NULL AND destination_wallet_id IS NOT NULL AND source_wallet_id != destination_wallet_id)
+  )
+);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions (user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_wallet_id ON transactions (wallet_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions (date DESC);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions (type);
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions (status);
+CREATE INDEX IF NOT EXISTS idx_transactions_category_id ON transactions (category_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_recurring ON transactions (recurring_id) WHERE recurring_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_transactions_deleted ON transactions (deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_transactions_invoice ON transactions (invoice_id) WHERE invoice_id IS NOT NULL;

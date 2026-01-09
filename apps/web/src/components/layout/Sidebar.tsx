@@ -79,7 +79,12 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
               href="/wallets"
               onClick={() => handleItemClick()}
             />
-            <SidebarItem icon={CreditCard} label="Cartões" onClick={() => handleItemClick()} />
+            <SidebarItem
+              icon={CreditCard}
+              label="Cartões"
+              href="/credito-card"
+              onClick={() => handleItemClick()}
+            />
           </ul>
 
           <span className="text-xs tracking-wider font-primary">GERAL</span>

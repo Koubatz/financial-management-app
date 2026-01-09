@@ -47,7 +47,8 @@ export function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, filterType, filterStatus, showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, filterType, filterStatus]);
 
   useEffect(() => {
     setPage(1);

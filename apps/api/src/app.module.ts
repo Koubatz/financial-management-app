@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { envValidationSchema } from './config/env.config';
 import { WalletsModule } from './wallets/wallets.module';
 import { TransactionsModule } from './transactions/transactions.module';
+import { CreditCardsModule } from './credit-cards/credit-cards.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TransactionsModule } from './transactions/transactions.module';
     AuthModule,
     WalletsModule,
     TransactionsModule,
+    CreditCardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,6 +6,8 @@ import { DashboardFilters, type PeriodFilter } from '@/components/dashboard/Dash
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import { WalletsOverview } from '@/components/dashboard/WalletsOverview';
 import { RecentTransactions } from '@/components/dashboard/RecentTransactions';
+import { TransactionHistoryChart } from '@/components/dashboard/TransactionHistoryChart';
+import { ExpensesByCategoryChart } from '@/components/dashboard/ExpensesByCategoryChart';
 import { transactionsApi, type Transaction } from '@/services/transactions';
 import { walletsApi, type Wallet } from '@/services/wallets';
 import { useToast } from '@/hooks/useToast';
@@ -35,7 +37,8 @@ export function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [showError]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     void fetchData();
@@ -162,6 +165,14 @@ export function DashboardPage() {
           expenses={expenses}
           savings={savings}
         />
+
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TransactionHistoryChart transactions={filteredTransactions} />
+          <div className="space-y-6">
+            <ExpensesByCategoryChart transactions={filteredTransactions} />
+          </div>
+        </div>
 
         {/* Carteiras */}
         <WalletsOverview
