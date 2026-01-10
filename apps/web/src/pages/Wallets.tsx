@@ -200,7 +200,7 @@ export function WalletsPage() {
                   wallet={wallet}
                   onEdit={handleEdit}
                   onArchive={setArchiveWallet}
-                  onViewTransactions={handleViewTransactions}
+                  onViewTransactions={void handleViewTransactions}
                 />
               ))}
             </div>
