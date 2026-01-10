@@ -315,8 +315,8 @@ A aplicação utiliza JWT (JSON Web Tokens) para autenticação:
 ### Usuário Padrão (após seed)
 
 ```
-Email: user@example.com
-Senha: Password123
+Email: joao.silva@test.com
+Senha: Test@123
 ```
 
 ---

@@ -4,15 +4,25 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Option } from '@/components/ui/option';
+import { walletsApi, type Wallet } from '@/services/wallets';
 import { cn } from '@/lib/utils';
 
-type TransactionType = 'credit' | 'debit';
+type TransactionType = 'INCOME' | 'EXPENSE' | 'TRANSFER';
+type TransactionStatus = 'COMPLETED' | 'PENDING' | 'CANCELED';
+type PaymentMethod = 'CASH' | 'DEBIT' | 'CREDIT' | 'PIX' | 'BANK_TRANSFER' | 'OTHER';
 
 interface TransactionFormData {
   amount: string;
   type: TransactionType;
-  category: string;
+  description: string;
+  walletId: string;
   date: string;
+  status?: TransactionStatus;
+  paymentMethod?: PaymentMethod;
+  notes?: string;
+  sourceWalletId?: string;
+  destinationWalletId?: string;
 }
 
 interface TransactionModalProps {
@@ -21,7 +31,6 @@ interface TransactionModalProps {
   description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  categories?: string[];
   className?: string;
   defaultValues?: Partial<TransactionFormData>;
   closeOnSubmit?: boolean;
@@ -29,15 +38,12 @@ interface TransactionModalProps {
   onClose: () => void;
 }
 
-const defaultCategories = ['Alimentação', 'Transporte', 'Moradia', 'Lazer', 'Saúde'];
-
 function TransactionModal({
   open,
   title = 'Nova transação',
   description = 'Preencha os dados para registrar a movimentação.',
   confirmLabel = 'Salvar transação',
   cancelLabel = 'Cancelar',
-  categories = defaultCategories,
   defaultValues,
   closeOnSubmit = true,
   onSubmit,
@@ -47,15 +53,40 @@ function TransactionModal({
 }: TransactionModalProps) {
   const titleId = React.useId();
   const descriptionId = React.useId();
+  const [wallets, setWallets] = React.useState<Wallet[]>([]);
+  const [loadingWallets, setLoadingWallets] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchWallets = async () => {
+      try {
+        const data = await walletsApi.getAll();
+        setWallets(data.filter((w) => w.status === 'ACTIVE'));
+      } catch (error) {
+        console.error('Erro ao carregar carteiras:', error);
+      } finally {
+        setLoadingWallets(false);
+      }
+    };
+
+    if (open) {
+      void fetchWallets();
+    }
+  }, [open]);
 
   const initialData = React.useMemo<TransactionFormData>(
     () => ({
       amount: defaultValues?.amount ?? '',
-      type: defaultValues?.type ?? 'credit',
-      category: defaultValues?.category ?? categories[0] ?? '',
+      type: defaultValues?.type ?? 'EXPENSE',
+      description: defaultValues?.description ?? '',
+      walletId: defaultValues?.walletId ?? wallets[0]?.id ?? '',
       date: defaultValues?.date ?? '',
+      status: defaultValues?.status ?? 'COMPLETED',
+      paymentMethod: defaultValues?.paymentMethod ?? 'CASH',
+      notes: defaultValues?.notes ?? '',
+      sourceWalletId: defaultValues?.sourceWalletId,
+      destinationWalletId: defaultValues?.destinationWalletId,
     }),
-    [categories, defaultValues],
+    [wallets, defaultValues],
   );
 
   const [formData, setFormData] = React.useState<TransactionFormData>(initialData);
@@ -107,6 +138,33 @@ function TransactionModal({
     }
   };
 
+  const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    // Remove tudo exceto números
+    const numbers = value.replace(/\D/g, '');
+
+    if (numbers === '') {
+      setFormData((prev) => ({ ...prev, amount: '' }));
+      return;
+    }
+
+    // Converte para número e divide por 100 para ter centavos
+    const numericValue = (parseInt(numbers, 10) / 100).toFixed(2);
+    setFormData((prev) => ({ ...prev, amount: numericValue }));
+  };
+
+  const formatCurrency = (value: string) => {
+    if (!value) return '';
+
+    const numericValue = parseFloat(value);
+    if (isNaN(numericValue)) return '';
+
+    return numericValue.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
     // Fechar apenas se clicar no backdrop, não em elementos filhos
     if (event.target === event.currentTarget) {
@@ -126,7 +184,10 @@ function TransactionModal({
     >
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-none" />
       <div
-        className={cn('relative z-10 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl', className)}
+        className={cn(
+          'relative z-10 w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl',
+          className,
+        )}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="space-y-2">
@@ -140,20 +201,10 @@ function TransactionModal({
           ) : null}
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-2 grid gap-4">
-          <Input
-            label="Valor"
-            type="number"
-            step="0.01"
-            inputMode="decimal"
-            placeholder="0,00"
-            value={formData.amount}
-            onChange={(event) => setFormData((prev) => ({ ...prev, amount: event.target.value }))}
-            required
-          />
-
+        <form onSubmit={handleSubmit} className="p-1 mt-2 grid gap-4 max-h-[60vh] overflow-y-auto">
+          {/* Tipo de Transação */}
           <Select
-            label="Tipo de operação"
+            label="Tipo de Transação *"
             value={formData.type}
             onChange={(event) =>
               setFormData((prev) => ({
@@ -161,37 +212,157 @@ function TransactionModal({
                 type: event.target.value as TransactionType,
               }))
             }
-          >
-            <option value="credit">Crédito</option>
-            <option value="debit">Débito</option>
-          </Select>
-
-          <Select
-            label="Categoria"
-            value={formData.category}
-            onChange={(event) => setFormData((prev) => ({ ...prev, category: event.target.value }))}
             required
           >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
+            <Option value="INCOME">Receita</Option>
+            <Option value="EXPENSE">Despesa</Option>
+            <Option value="TRANSFER">Transferência</Option>
           </Select>
 
+          {/* Valor */}
           <Input
-            label="Data da operação"
+            label="Valor *"
+            type="text"
+            inputMode="decimal"
+            placeholder="0,00"
+            value={formatCurrency(formData.amount)}
+            onChange={handleAmountChange}
+            required
+          />
+
+          {/* Descrição */}
+          <Input
+            label="Descrição *"
+            type="text"
+            placeholder="Ex: Salário, Compra no mercado, Transferência"
+            value={formData.description}
+            onChange={(event) =>
+              setFormData((prev) => ({ ...prev, description: event.target.value }))
+            }
+            required
+          />
+
+          {/* Carteira Vinculada */}
+          {formData.type !== 'TRANSFER' && (
+            <Select
+              label="Conta Vinculada *"
+              value={formData.walletId}
+              onChange={(event) =>
+                setFormData((prev) => ({ ...prev, walletId: event.target.value }))
+              }
+              required
+            >
+              {loadingWallets ? (
+                <Option value="">Carregando contas...</Option>
+              ) : wallets.length > 0 ? (
+                wallets.map((wallet) => (
+                  <Option key={wallet.id} value={wallet.id}>
+                    {wallet.name} ({wallet.currency})
+                  </Option>
+                ))
+              ) : (
+                <Option value="">Nenhuma conta disponível</Option>
+              )}
+            </Select>
+          )}
+
+          {/* Transferência - Contas de Origem e Destino */}
+          {formData.type === 'TRANSFER' && (
+            <>
+              <Select
+                label="Conta de Origem *"
+                value={formData.sourceWalletId || ''}
+                onChange={(event) =>
+                  setFormData((prev) => ({ ...prev, sourceWalletId: event.target.value }))
+                }
+                required
+              >
+                <Option value="">Selecione uma conta...</Option>
+                {wallets.map((wallet) => (
+                  <Option key={wallet.id} value={wallet.id}>
+                    {wallet.name} ({wallet.currency})
+                  </Option>
+                ))}
+              </Select>
+
+              <Select
+                label="Conta de Destino *"
+                value={formData.destinationWalletId || ''}
+                onChange={(event) =>
+                  setFormData((prev) => ({ ...prev, destinationWalletId: event.target.value }))
+                }
+                required
+              >
+                <Option value="">Selecione uma conta...</Option>
+                {wallets.map((wallet) => (
+                  <Option key={wallet.id} value={wallet.id}>
+                    {wallet.name} ({wallet.currency})
+                  </Option>
+                ))}
+              </Select>
+            </>
+          )}
+
+          {/* Data */}
+          <Input
+            label="Data da Transação *"
             type="date"
             value={formData.date}
             onChange={(event) => setFormData((prev) => ({ ...prev, date: event.target.value }))}
             required
           />
 
+          {/* Status */}
+          <Select
+            label="Status"
+            value={formData.status || 'COMPLETED'}
+            onChange={(event) =>
+              setFormData((prev) => ({
+                ...prev,
+                status: event.target.value as TransactionStatus,
+              }))
+            }
+          >
+            <Option value="COMPLETED">Concluída</Option>
+            <Option value="PENDING">Pendente</Option>
+            <Option value="CANCELED">Cancelada</Option>
+          </Select>
+
+          {/* Método de Pagamento */}
+          <Select
+            label="Método de Pagamento"
+            value={formData.paymentMethod || 'CASH'}
+            onChange={(event) =>
+              setFormData((prev) => ({
+                ...prev,
+                paymentMethod: event.target.value as PaymentMethod,
+              }))
+            }
+          >
+            <Option value="CASH">Dinheiro</Option>
+            <Option value="DEBIT">Débito</Option>
+            <Option value="CREDIT">Crédito</Option>
+            <Option value="PIX">PIX</Option>
+            <Option value="BANK_TRANSFER">Transferência Bancária</Option>
+            <Option value="OTHER">Outro</Option>
+          </Select>
+
+          {/* Notas */}
+          <Input
+            label="Notas"
+            type="text"
+            placeholder="Observações adicionais (opcional)"
+            value={formData.notes || ''}
+            onChange={(event) => setFormData((prev) => ({ ...prev, notes: event.target.value }))}
+          />
+
           <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={onClose}>
               {cancelLabel}
             </Button>
-            <Button type="submit">{confirmLabel}</Button>
+            <Button type="submit" disabled={loadingWallets}>
+              {confirmLabel}
+            </Button>
           </div>
         </form>
       </div>

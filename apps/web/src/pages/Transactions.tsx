@@ -3,6 +3,8 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
+import { Option } from '@/components/ui/option';
 import { useToast } from '@/hooks/useToast';
 import { transactionsApi, type Transaction } from '@/services/transactions';
 import {
@@ -115,6 +117,16 @@ export function TransactionsPage() {
       TRANSFER: 'Transferência',
     };
     return labels[type as keyof typeof labels] || type;
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels = {
+      ALL: 'Todos',
+      COMPLETED: 'Concluída',
+      PENDING: 'Pendente',
+      CANCELED: 'Cancelada',
+    };
+    return labels[status as keyof typeof labels] || status;
   };
 
   const totalIncome = allTransactionsForSummary
@@ -233,7 +245,7 @@ export function TransactionsPage() {
                     variant={filterStatus === status ? 'default' : 'outline'}
                     size="sm"
                   >
-                    {status === 'ALL' ? 'Todos' : status}
+                    {getStatusLabel(status)}
                   </Button>
                 ))}
               </div>
@@ -249,16 +261,12 @@ export function TransactionsPage() {
                 Listagem de Transações
                 <span className="text-sm font-normal text-slate-600 ml-2">({total})</span>
               </CardTitle>
-              <select
-                value={limit}
-                onChange={(e) => setLimit(Number(e.target.value))}
-                className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              >
-                <option value={5}>5 por página</option>
-                <option value={10}>10 por página</option>
-                <option value={25}>25 por página</option>
-                <option value={50}>50 por página</option>
-              </select>
+              <Select value={String(limit)} onChange={(e) => setLimit(Number(e.target.value))}>
+                <Option value="5">5 por página</Option>
+                <Option value="10">10 por página</Option>
+                <Option value="25">25 por página</Option>
+                <Option value="50">50 por página</Option>
+              </Select>
             </div>
           </CardHeader>
           <CardContent>

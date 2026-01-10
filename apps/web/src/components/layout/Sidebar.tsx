@@ -7,7 +7,7 @@ import {
   Wallet,
   X,
 } from 'lucide-react';
-import logo from '@/assets/logo.svg';
+import logo from '@/assets/controllah.svg';
 import { SidebarItem } from './SidebarItem';
 
 interface SidebarProps {
@@ -47,14 +47,8 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
           <X size={24} />
         </button>
         {/* Header / Logo */}
-        <div className="flex px-6 py-4">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="FinManager" className="h-10 w-10 object-contain" />
-            <div className="flex flex-col gap-1">
-              <span className="text-xs font-bold font-primary tracking-wider">Gerenciamento </span>
-              <span className="text-xs font-bold font-primary tracking-wider">Financeiro</span>
-            </div>
-          </div>
+        <div className="flex justify-center px-6 py-4">
+          <img src={logo} alt="FinManager" className="h-24 w-24 object-contain" />
         </div>
 
         {/* Navegação Principal */}
@@ -82,7 +76,7 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
             <SidebarItem
               icon={CreditCard}
               label="Cartões"
-              href="/credito-card"
+              href="/credit-cards"
               onClick={() => handleItemClick()}
             />
           </ul>

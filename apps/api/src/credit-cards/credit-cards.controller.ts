@@ -10,7 +10,8 @@ import { AuthGuard } from '../auth/auth.guard';
 
 interface AuthenticatedRequest extends Request {
   user: {
-    id: string;
+    sub: string;
+    email: string;
     [key: string]: unknown;
   };
 }
@@ -25,17 +26,17 @@ export class CreditCardsController {
     @Req() req: AuthenticatedRequest,
     @Body() dto: CreateCreditCardDto,
   ): Promise<CreditCard> {
-    return this.creditCardsService.create(req.user.id, dto);
+    return this.creditCardsService.create(req.user.sub, dto);
   }
 
   @Get()
   async getAll(@Req() req: AuthenticatedRequest): Promise<CreditCard[]> {
-    return this.creditCardsService.getAll(req.user.id);
+    return this.creditCardsService.getAll(req.user.sub);
   }
 
   @Get(':id')
   async getById(@Req() req: AuthenticatedRequest, @Param('id') id: string): Promise<CreditCard> {
-    return this.creditCardsService.getById(id, req.user.id);
+    return this.creditCardsService.getById(id, req.user.sub);
   }
 
   @Put(':id')
@@ -44,7 +45,7 @@ export class CreditCardsController {
     @Param('id') id: string,
     @Body() updates: Partial<CreditCard>,
   ): Promise<CreditCard> {
-    return this.creditCardsService.update(id, req.user.id, updates);
+    return this.creditCardsService.update(id, req.user.sub, updates);
   }
 
   @Delete(':id')
@@ -57,7 +58,7 @@ export class CreditCardsController {
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
   ): Promise<CardInstallment[]> {
-    return this.creditCardsService.getInstallments(id, req.user.id);
+    return this.creditCardsService.getInstallments(id, req.user.sub);
   }
 
   @Put(':id/installments/:installmentId/pay')
@@ -66,6 +67,6 @@ export class CreditCardsController {
     @Param('id') cardId: string,
     @Param('installmentId') installmentId: string,
   ): Promise<CardInstallment> {
-    return this.creditCardsService.markInstallmentAsPaid(installmentId, cardId, req.user.id);
+    return this.creditCardsService.markInstallmentAsPaid(installmentId, cardId, req.user.sub);
   }
 }

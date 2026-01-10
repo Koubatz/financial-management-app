@@ -62,7 +62,7 @@ export function Router() {
             }
           />
           <Route
-            path="/credito-card"
+            path="/credit-cards"
             element={
               <ProtectedRoute>
                 <CreditCardsPage />

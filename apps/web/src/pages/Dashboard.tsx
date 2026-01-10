@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { TransactionModal } from '@/components/ui/transaction-modal';
+import { TransactionModal, type TransactionType } from '@/components/ui/transaction-modal';
 import { DashboardFilters, type PeriodFilter } from '@/components/dashboard/DashboardFilters';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import { WalletsOverview } from '@/components/dashboard/WalletsOverview';
@@ -20,6 +20,7 @@ export function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [transactionModalType, setTransactionModalType] = useState<TransactionType>('EXPENSE');
   const { showError } = useToast();
   const navigate = useNavigate();
 
@@ -153,8 +154,14 @@ export function DashboardPage() {
           selectedWallet={selectedWallet}
           onWalletChange={setSelectedWallet}
           wallets={wallets.map((w) => ({ id: w.id, name: w.name }))}
-          onNewTransaction={() => setIsTransactionModalOpen(true)}
-          onNewTransfer={() => setIsTransactionModalOpen(true)}
+          onNewTransaction={() => {
+            setTransactionModalType('EXPENSE');
+            setIsTransactionModalOpen(true);
+          }}
+          onNewTransfer={() => {
+            setTransactionModalType('TRANSFER');
+            setIsTransactionModalOpen(true);
+          }}
           onNewWallet={() => void navigate('/wallets')}
         />
 
@@ -177,7 +184,10 @@ export function DashboardPage() {
         {/* Carteiras */}
         <WalletsOverview
           wallets={walletsWithSummary}
-          onAddTransaction={() => setIsTransactionModalOpen(true)}
+          onAddTransaction={() => {
+            setTransactionModalType('EXPENSE');
+            setIsTransactionModalOpen(true);
+          }}
         />
 
         {/* Últimas Transações */}
@@ -188,6 +198,7 @@ export function DashboardPage() {
       <TransactionModal
         open={isTransactionModalOpen}
         onClose={() => setIsTransactionModalOpen(false)}
+        defaultValues={{ type: transactionModalType }}
       />
     </MainLayout>
   );

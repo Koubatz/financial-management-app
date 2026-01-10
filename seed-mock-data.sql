@@ -313,7 +313,150 @@ VALUES (
 ON CONFLICT (id) DO NOTHING;
 
 -- =============================================
--- 3. CRIAR TRANSAÇÕES DE TESTE
+-- 3. CRIAR CARTÕES DE CRÉDITO
+-- =============================================
+
+-- Cartão 1: Mastercard Nubank
+INSERT INTO credit_cards (
+  id,
+  user_id,
+  wallet_id,
+  card_number,
+  holder_name,
+  expiry_date,
+  cvv,
+  bank,
+  card_network,
+  card_type,
+  credit_limit,
+  used_limit,
+  status,
+  created_at,
+  updated_at
+)
+VALUES (
+  '990e8400-e29b-41d4-a716-446655440001',
+  '550e8400-e29b-41d4-a716-446655440000',
+  '660e8400-e29b-41d4-a716-446655440004', -- Cartão Nubank wallet
+  '5412751234567890',
+  'João Silva',
+  '12/28',
+  '123',
+  'Nubank',
+  'MASTERCARD',
+  'CREDIT',
+  5000.00,
+  850.00,
+  'ACTIVE',
+  NOW(),
+  NOW()
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Cartão 2: Visa Itaú
+INSERT INTO credit_cards (
+  id,
+  user_id,
+  wallet_id,
+  card_number,
+  holder_name,
+  expiry_date,
+  cvv,
+  bank,
+  card_network,
+  card_type,
+  credit_limit,
+  used_limit,
+  status,
+  created_at,
+  updated_at
+)
+VALUES (
+  '990e8400-e29b-41d4-a716-446655440002',
+  '550e8400-e29b-41d4-a716-446655440000',
+  '660e8400-e29b-41d4-a716-446655440005', -- Visa Internacional wallet
+  '4532123456789012',
+  'João Silva',
+  '06/27',
+  '456',
+  'Banco Itaú',
+  'VISA',
+  'CREDIT',
+  3000.00,
+  125.50,
+  'ACTIVE',
+  NOW(),
+  NOW()
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- =============================================
+-- 4. CRIAR PARCELAS DE CARTÃO (Card Installments)
+-- =============================================
+
+-- Parcelas do Notebook Dell (12 parcelas de R$ 208,33)
+-- Parcela 1 (paga)
+INSERT INTO card_installments (
+  id,
+  credit_card_id,
+  transaction_id,
+  installment_number,
+  total_installments,
+  amount,
+  due_date,
+  is_paid,
+  paid_date,
+  description,
+  created_at,
+  updated_at
+)
+VALUES (
+  'aa0e8400-e29b-41d4-a716-446655440001',
+  '990e8400-e29b-41d4-a716-446655440001',
+  '770e8400-e29b-41d4-a716-446655440005',
+  1,
+  12,
+  208.33,
+  NOW() - INTERVAL '10 days',
+  true,
+  NOW() - INTERVAL '5 days',
+  'Notebook Dell XPS 15 - Parcela 1/12',
+  NOW() - INTERVAL '15 days',
+  NOW() - INTERVAL '5 days'
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Parcelas 2-12 (pendentes)
+INSERT INTO card_installments (
+  id,
+  credit_card_id,
+  transaction_id,
+  installment_number,
+  total_installments,
+  amount,
+  due_date,
+  is_paid,
+  description,
+  created_at,
+  updated_at
+)
+SELECT 
+  gen_random_uuid(),
+  '990e8400-e29b-41d4-a716-446655440001',
+  '770e8400-e29b-41d4-a716-446655440005',
+  n,
+  12,
+  208.33,
+  NOW() + (n - 1) * INTERVAL '1 month',
+  false,
+  'Notebook Dell XPS 15 - Parcela ' || n || '/12',
+  NOW() - INTERVAL '15 days',
+  NOW() - INTERVAL '15 days'
+FROM generate_series(2, 12) AS n
+ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- 5. CRIAR TRANSAÇÕES DE TESTE
 -- =============================================
 
 -- Transação 1: Receita - Salário
