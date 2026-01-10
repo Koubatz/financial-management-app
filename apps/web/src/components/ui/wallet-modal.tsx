@@ -2,6 +2,8 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
+import { Option } from '@/components/ui/option';
 import { cn } from '@/lib/utils';
 
 type WalletType = 'CASH' | 'BANK' | 'CREDIT_CARD' | 'INVESTMENT';
@@ -172,8 +174,7 @@ function WalletModal({
           {/* Tipo de Carteira */}
           <label className="grid gap-2 text-sm font-medium text-foreground">
             Tipo de Conta *
-            <select
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+            <Select
               value={formData.walletType}
               onChange={(event) =>
                 setFormData((prev) => ({
@@ -183,28 +184,27 @@ function WalletModal({
               }
               required
             >
-              <option value="CASH">Dinheiro</option>
-              <option value="BANK">Conta Bancária</option>
-              <option value="CREDIT_CARD">Cartão de Crédito</option>
-              <option value="INVESTMENT">Investimentos</option>
-            </select>
+              <Option value="CASH">Dinheiro</Option>
+              <Option value="BANK">Conta Bancária</Option>
+              <Option value="CREDIT_CARD">Cartão de Crédito</Option>
+              <Option value="INVESTMENT">Investimentos</Option>
+            </Select>
           </label>
 
           {/* Moeda */}
           <label className="grid gap-2 text-sm font-medium text-foreground">
             Moeda *
-            <select
-              className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+            <Select
               value={formData.currency}
               onChange={(event) =>
                 setFormData((prev) => ({ ...prev, currency: event.target.value }))
               }
               required
             >
-              <option value="BRL">BRL - Real Brasileiro</option>
-              <option value="USD">USD - Dólar Americano</option>
-              <option value="EUR">EUR - Euro</option>
-            </select>
+              <Option value="BRL">BRL - Real Brasileiro</Option>
+              <Option value="USD">USD - Dólar Americano</Option>
+              <Option value="EUR">EUR - Euro</Option>
+            </Select>
           </label>
 
           {/* Saldo Inicial */}
@@ -310,8 +310,7 @@ function WalletModal({
             <>
               <label className="grid gap-2 text-sm font-medium text-foreground">
                 Tipo da Conta *
-                <select
-                  className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                <Select
                   value={formData.accountType}
                   onChange={(event) =>
                     setFormData((prev) => ({
@@ -321,9 +320,9 @@ function WalletModal({
                   }
                   required
                 >
-                  <option value="CHECKING">Corrente</option>
-                  <option value="SAVINGS">Poupança</option>
-                </select>
+                  <Option value="CHECKING">Corrente</Option>
+                  <Option value="SAVINGS">Poupança</Option>
+                </Select>
               </label>
 
               <label className="grid gap-2 text-sm font-medium text-foreground">

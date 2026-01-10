@@ -33,6 +33,18 @@ export interface CardInstallment {
   updatedAt: string;
 }
 
+export interface CreateCreditCardDto {
+  walletId: string;
+  cardNumber: string;
+  holderName: string;
+  expiryDate: string;
+  cvv?: string;
+  bank: string;
+  cardNetwork: 'VISA' | 'MASTERCARD' | 'ELO' | 'AMEX';
+  cardType: string;
+  creditLimit: number;
+}
+
 export const creditCardsApi = {
   async getAll(): Promise<CreditCard[]> {
     const { data } = await api.get<CreditCard[]>('/credit-cards');
@@ -44,7 +56,7 @@ export const creditCardsApi = {
     return data;
   },
 
-  async create(card: Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>): Promise<CreditCard> {
+  async create(card: CreateCreditCardDto): Promise<CreditCard> {
     const { data } = await api.post<CreditCard>('/credit-cards', card);
     return data;
   },

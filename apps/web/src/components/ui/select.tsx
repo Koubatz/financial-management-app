@@ -69,7 +69,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             onClick={() => !disabled && setOpen(!open)}
             disabled={disabled}
             className={cn(
-              'h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 pr-10 text-sm text-left text-foreground outline-none transition',
+              'h-10 w-full min-w-[200px] rounded-md border border-slate-200 bg-white px-3 py-2 pr-10 text-sm text-left text-foreground outline-none transition',
               'cursor-pointer hover:border-slate-300',
               open && 'border-blue-500 ring-2 ring-blue-500/20',
               'disabled:cursor-not-allowed disabled:opacity-50',

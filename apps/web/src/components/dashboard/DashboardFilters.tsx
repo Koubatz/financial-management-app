@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
+import { Option } from '@/components/ui/option';
 import { Plus, Calendar, Wallet } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
@@ -29,7 +31,6 @@ export function DashboardFilters({
     { value: 'current-month', label: 'Mês atual' },
     { value: 'last-7-days', label: 'Últimos 7 dias' },
     { value: 'last-30-days', label: 'Últimos 30 dias' },
-    { value: 'custom', label: 'Personalizado' },
   ];
 
   return (
@@ -40,34 +41,32 @@ export function DashboardFilters({
           {/* Período */}
           <div className="flex items-center gap-2">
             <Calendar size={18} className="text-slate-600" />
-            <select
+            <Select
               value={selectedPeriod}
               onChange={(e) => onPeriodChange(e.target.value as PeriodFilter)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
             >
               {periods.map((period) => (
-                <option key={period.value} value={period.value}>
+                <Option key={period.value} value={period.value}>
                   {period.label}
-                </option>
+                </Option>
               ))}
-            </select>
+            </Select>
           </div>
 
           {/* Carteira */}
           <div className="flex items-center gap-2">
             <Wallet size={18} className="text-slate-600" />
-            <select
+            <Select
               value={selectedWallet || 'all'}
               onChange={(e) => onWalletChange(e.target.value)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
             >
-              <option value="all">Todas as carteiras</option>
+              <Option value="all">Todas as carteiras</Option>
               {wallets.map((wallet) => (
-                <option key={wallet.id} value={wallet.id}>
+                <Option key={wallet.id} value={wallet.id}>
                   {wallet.name}
-                </option>
+                </Option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
