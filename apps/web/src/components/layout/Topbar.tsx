@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button';
-import { SearchInput } from '@/components/ui/search-input';
 import { useAuthStore } from '@/data/authStore';
 import { Bell, Menu } from 'lucide-react';
 
@@ -51,8 +50,6 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
       {/* Lado Direito: Notificações e Perfil */}
       <div className="flex items-center gap-2 lg:gap-4">
-        <SearchInput placeholder="Buscar..." className="hidden md:block" />
-
         {/* <hr className="h-8 w-px bg-gray-200" /> */}
 
         <Button className="relative" variant="outline" size="icon">

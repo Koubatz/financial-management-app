@@ -1,12 +1,4 @@
-import {
-  ArrowRightLeft,
-  CreditCard,
-  LayoutDashboard,
-  LogOut,
-  Settings,
-  Wallet,
-  X,
-} from 'lucide-react';
+import { ArrowRightLeft, CreditCard, LayoutDashboard, LogOut, Wallet, X } from 'lucide-react';
 import logo from '@/assets/controllah.svg';
 import { SidebarItem } from './SidebarItem';
 
@@ -79,11 +71,6 @@ export function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
               href="/credit-cards"
               onClick={() => handleItemClick()}
             />
-          </ul>
-
-          <span className="text-xs tracking-wider font-primary">GERAL</span>
-          <ul className="space-y-2">
-            <SidebarItem icon={Settings} label="Configurações" onClick={() => handleItemClick()} />
           </ul>
         </nav>
 

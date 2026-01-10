@@ -10,6 +10,7 @@ import {
   type CreateWalletDto,
   type UpdateWalletDto,
 } from '@/services/wallets';
+import { transactionsApi, type Transaction } from '@/services/transactions';
 import { useToast } from '@/hooks/useToast';
 import { Plus, Wallet as WalletIcon } from 'lucide-react';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
@@ -21,6 +22,10 @@ export function WalletsPage() {
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
   const [archiveWallet, setArchiveWallet] = useState<Wallet | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [isTransactionsModalOpen, setIsTransactionsModalOpen] = useState(false);
+  const [selectedWalletTransactions, setSelectedWalletTransactions] = useState<Wallet | null>(null);
+  const [walletTransactions, setWalletTransactions] = useState<Transaction[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const fetchWallets = useCallback(async () => {
@@ -128,6 +133,20 @@ export function WalletsPage() {
     setEditingWallet(null);
   };
 
+  const handleViewTransactions = async (wallet: Wallet) => {
+    try {
+      setSelectedWalletTransactions(wallet);
+      setLoadingTransactions(true);
+      const data = await transactionsApi.getAll({ walletId: wallet.id });
+      setWalletTransactions(data);
+      setIsTransactionsModalOpen(true);
+    } catch {
+      showError('Erro ao carregar transações');
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
   const activeWallets = wallets.filter((w) => w.status === 'ACTIVE');
   const archivedWallets = wallets.filter((w) => w.status === 'ARCHIVED');
 
@@ -181,6 +200,7 @@ export function WalletsPage() {
                   wallet={wallet}
                   onEdit={handleEdit}
                   onArchive={setArchiveWallet}
+                  onViewTransactions={handleViewTransactions}
                 />
               ))}
             </div>
@@ -250,6 +270,110 @@ export function WalletsPage() {
         confirmLabel="Arquivar"
         confirmVariant="destructive"
       />
+
+      {/* Modal de Transações da Carteira */}
+      {isTransactionsModalOpen && selectedWalletTransactions && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setIsTransactionsModalOpen(false)}
+        >
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative z-10 w-full max-w-2xl rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Transações - {selectedWalletTransactions.name}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {walletTransactions.length} transação(ões)
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsTransactionsModalOpen(false)}
+                >
+                  ✕
+                </Button>
+              </div>
+
+              {loadingTransactions ? (
+                <div className="flex justify-center py-8">
+                  <LoadingSpinner />
+                </div>
+              ) : walletTransactions.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-slate-600">Nenhuma transação nesta conta</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {walletTransactions.map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
+                    >
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-900">
+                          {transaction.description}
+                        </p>
+                        <p className="text-xs text-slate-600 mt-1">
+                          {new Intl.DateTimeFormat('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                          }).format(new Date(transaction.date))}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`text-sm font-bold ${
+                            transaction.type === 'INCOME'
+                              ? 'text-emerald-600'
+                              : transaction.type === 'EXPENSE'
+                                ? 'text-red-600'
+                                : 'text-sky-600'
+                          }`}
+                        >
+                          {transaction.type === 'INCOME'
+                            ? '+'
+                            : transaction.type === 'EXPENSE'
+                              ? '-'
+                              : ''}
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                          }).format(transaction.amount)}
+                        </p>
+                        <span
+                          className={`text-xs font-semibold px-2 py-1 rounded-full inline-block mt-1 ${
+                            transaction.status === 'COMPLETED'
+                              ? 'bg-emerald-500/20 text-emerald-600'
+                              : transaction.status === 'PENDING'
+                                ? 'bg-amber-500/20 text-amber-600'
+                                : 'bg-red-500/20 text-red-600'
+                          }`}
+                        >
+                          {transaction.status === 'COMPLETED'
+                            ? 'Completa'
+                            : transaction.status === 'PENDING'
+                              ? 'Pendente'
+                              : 'Cancelada'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </MainLayout>
   );
 }

@@ -1,13 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ArrowDownCircle, ArrowUpCircle, ArrowRightLeft, Pencil } from 'lucide-react';
 import type { Transaction } from '@/services/transactions';
 
 interface RecentTransactionsProps {
   transactions: Transaction[];
   onTransactionClick?: (transaction: Transaction) => void;
+  onEditClick?: (transaction: Transaction) => void;
 }
 
-export function RecentTransactions({ transactions, onTransactionClick }: RecentTransactionsProps) {
+export function RecentTransactions({
+  transactions,
+  onTransactionClick,
+  onEditClick,
+}: RecentTransactionsProps) {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'INCOME':
@@ -109,6 +115,19 @@ export function RecentTransactions({ transactions, onTransactionClick }: RecentT
                         : ''}
                     {formatCurrency(transaction.amount)}
                   </p>
+                  {onEditClick && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditClick(transaction);
+                      }}
+                      className="flex-shrink-0 h-8 w-8"
+                    >
+                      <Pencil size={14} />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

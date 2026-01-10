@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Option } from '@/components/ui/option';
+import { TransactionModal } from '@/components/ui/transaction-modal';
 import { useToast } from '@/hooks/useToast';
 import { transactionsApi, type Transaction } from '@/services/transactions';
 import {
@@ -15,6 +16,7 @@ import {
   TrendingDown,
   ChevronLeft,
   ChevronRight,
+  Pencil,
 } from 'lucide-react';
 import { theme } from '@/config/theme';
 
@@ -30,7 +32,9 @@ export function TransactionsPage() {
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(0);
-  const { showError } = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const { showError, showSuccess } = useToast();
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -138,6 +142,37 @@ export function TransactionsPage() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const balance = totalIncome - totalExpense;
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateTransaction = async (data: {
+    amount: string;
+    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+    description: string;
+    walletId: string;
+    date: string;
+    status?: 'COMPLETED' | 'PENDING' | 'CANCELED';
+    paymentMethod?: 'CASH' | 'DEBIT' | 'CREDIT' | 'PIX' | 'BANK_TRANSFER' | 'OTHER';
+    notes?: string;
+  }) => {
+    if (!editingTransaction) return;
+
+    try {
+      await transactionsApi.update(editingTransaction.id, {
+        ...data,
+        amount: parseFloat(data.amount),
+      });
+      showSuccess('Transação atualizada com sucesso!');
+      setIsEditModalOpen(false);
+      setEditingTransaction(null);
+      await fetchTransactions();
+    } catch {
+      showError('Erro ao atualizar transação');
+    }
+  };
 
   if (loading && page === 1) {
     return (
@@ -338,6 +373,14 @@ export function TransactionsPage() {
                           </p>
                           <div className="mt-2">{getStatusBadge(transaction.status)}</div>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleEditTransaction(transaction)}
+                          className="flex-shrink-0"
+                        >
+                          <Pencil size={16} />
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -377,6 +420,32 @@ export function TransactionsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal de Edição */}
+      <TransactionModal
+        open={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingTransaction(null);
+        }}
+        onSubmit={(data) => void handleUpdateTransaction(data)}
+        title="Editar Transação"
+        confirmLabel="Salvar Alterações"
+        defaultValues={
+          editingTransaction
+            ? {
+                amount: String(editingTransaction.amount),
+                type: editingTransaction.type,
+                description: editingTransaction.description,
+                walletId: editingTransaction.walletId,
+                date: editingTransaction.date.split('T')[0],
+                status: editingTransaction.status,
+                paymentMethod: editingTransaction.paymentMethod || undefined,
+                notes: editingTransaction.notes || undefined,
+              }
+            : undefined
+        }
+      />
     </MainLayout>
   );
 }
