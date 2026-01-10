@@ -78,7 +78,7 @@ function TransactionModal({
       amount: defaultValues?.amount ?? '',
       type: defaultValues?.type ?? 'EXPENSE',
       description: defaultValues?.description ?? '',
-      walletId: defaultValues?.walletId ?? wallets[0]?.id ?? '',
+      walletId: (defaultValues?.walletId ?? (!loadingWallets && wallets[0]?.id)) || '',
       date: defaultValues?.date ?? '',
       status: defaultValues?.status ?? 'COMPLETED',
       paymentMethod: defaultValues?.paymentMethod ?? 'CASH',
@@ -86,7 +86,7 @@ function TransactionModal({
       sourceWalletId: defaultValues?.sourceWalletId,
       destinationWalletId: defaultValues?.destinationWalletId,
     }),
-    [wallets, defaultValues],
+    [wallets, defaultValues, loadingWallets],
   );
 
   const [formData, setFormData] = React.useState<TransactionFormData>(initialData);
@@ -96,6 +96,16 @@ function TransactionModal({
       setFormData(initialData);
     }
   }, [open, initialData]);
+
+  // Atualizar walletId quando wallets carregarem e houver defaultValues
+  React.useEffect(() => {
+    if (open && !loadingWallets && defaultValues?.walletId) {
+      setFormData((prev) => ({
+        ...prev,
+        walletId: defaultValues.walletId ?? '',
+      }));
+    }
+  }, [open, loadingWallets, defaultValues?.walletId]);
 
   React.useEffect(() => {
     if (!open || typeof document === 'undefined') {
@@ -245,7 +255,7 @@ function TransactionModal({
           {/* Carteira Vinculada */}
           {formData.type !== 'TRANSFER' && (
             <Select
-              label="Conta Vinculada *"
+              label="Conta Vinculada"
               value={formData.walletId}
               onChange={(event) =>
                 setFormData((prev) => ({ ...prev, walletId: event.target.value }))

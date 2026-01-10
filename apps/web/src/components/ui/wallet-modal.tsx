@@ -84,6 +84,33 @@ function WalletModal({
     }
   }, [open, initialData]);
 
+  const handleBalanceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    // Remove tudo exceto números
+    const numbers = value.replace(/\D/g, '');
+
+    if (numbers === '') {
+      setFormData((prev) => ({ ...prev, initialBalance: '' }));
+      return;
+    }
+
+    // Converte para número e divide por 100 para ter centavos
+    const numericValue = (parseInt(numbers, 10) / 100).toFixed(2);
+    setFormData((prev) => ({ ...prev, initialBalance: numericValue }));
+  };
+
+  const formatCurrency = (value: string) => {
+    if (!value) return '';
+
+    const numericValue = parseFloat(value);
+    if (isNaN(numericValue)) return '';
+
+    return numericValue.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   React.useEffect(() => {
     if (!open || typeof document === 'undefined') {
       return;
@@ -172,54 +199,45 @@ function WalletModal({
           </label>
 
           {/* Tipo de Carteira */}
-          <label className="grid gap-2 text-sm font-medium text-foreground">
-            Tipo de Conta *
-            <Select
-              value={formData.walletType}
-              onChange={(event) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  walletType: event.target.value as WalletType,
-                }))
-              }
-              required
-            >
-              <Option value="CASH">Dinheiro</Option>
-              <Option value="BANK">Conta Bancária</Option>
-              <Option value="CREDIT_CARD">Cartão de Crédito</Option>
-              <Option value="INVESTMENT">Investimentos</Option>
-            </Select>
-          </label>
+          <Select
+            label="Tipo de Conta *"
+            value={formData.walletType}
+            onChange={(event) =>
+              setFormData((prev) => ({
+                ...prev,
+                walletType: event.target.value as WalletType,
+              }))
+            }
+            required
+          >
+            <Option value="CASH">Dinheiro</Option>
+            <Option value="BANK">Conta Bancária</Option>
+            <Option value="CREDIT_CARD">Cartão de Crédito</Option>
+            <Option value="INVESTMENT">Investimentos</Option>
+          </Select>
 
           {/* Moeda */}
-          <label className="grid gap-2 text-sm font-medium text-foreground">
-            Moeda *
-            <Select
-              value={formData.currency}
-              onChange={(event) =>
-                setFormData((prev) => ({ ...prev, currency: event.target.value }))
-              }
-              required
-            >
-              <Option value="BRL">BRL - Real Brasileiro</Option>
-              <Option value="USD">USD - Dólar Americano</Option>
-              <Option value="EUR">EUR - Euro</Option>
-            </Select>
-          </label>
+          <Select
+            label="Moeda *"
+            value={formData.currency}
+            onChange={(event) => setFormData((prev) => ({ ...prev, currency: event.target.value }))}
+            required
+          >
+            <Option value="BRL">BRL - Real Brasileiro</Option>
+            <Option value="USD">USD - Dólar Americano</Option>
+            <Option value="EUR">EUR - Euro</Option>
+          </Select>
 
           {/* Saldo Inicial */}
           <label className="grid gap-2 text-sm font-medium text-foreground">
             Saldo Inicial *
             <input
-              type="number"
-              step="0.01"
+              type="text"
               inputMode="decimal"
               placeholder="0,00"
               className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={formData.initialBalance}
-              onChange={(event) =>
-                setFormData((prev) => ({ ...prev, initialBalance: event.target.value }))
-              }
+              value={formatCurrency(formData.initialBalance)}
+              onChange={handleBalanceChange}
               required
             />
           </label>
@@ -258,15 +276,21 @@ function WalletModal({
               <label className="grid gap-2 text-sm font-medium text-foreground">
                 Limite do Cartão *
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
                   inputMode="decimal"
                   placeholder="0,00"
                   className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none transition focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                  value={formData.creditLimit}
-                  onChange={(event) =>
-                    setFormData((prev) => ({ ...prev, creditLimit: event.target.value }))
-                  }
+                  value={formatCurrency(formData.creditLimit || '')}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    const numbers = value.replace(/\D/g, '');
+                    if (numbers === '') {
+                      setFormData((prev) => ({ ...prev, creditLimit: '' }));
+                      return;
+                    }
+                    const numericValue = (parseInt(numbers, 10) / 100).toFixed(2);
+                    setFormData((prev) => ({ ...prev, creditLimit: numericValue }));
+                  }}
                   required
                 />
               </label>
@@ -308,22 +332,20 @@ function WalletModal({
           {/* Campos específicos da Conta Bancária */}
           {showBankFields && (
             <>
-              <label className="grid gap-2 text-sm font-medium text-foreground">
-                Tipo da Conta *
-                <Select
-                  value={formData.accountType}
-                  onChange={(event) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      accountType: event.target.value as BankAccountType,
-                    }))
-                  }
-                  required
-                >
-                  <Option value="CHECKING">Corrente</Option>
-                  <Option value="SAVINGS">Poupança</Option>
-                </Select>
-              </label>
+              <Select
+                label="Tipo da Conta *"
+                value={formData.accountType}
+                onChange={(event) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    accountType: event.target.value as BankAccountType,
+                  }))
+                }
+                required
+              >
+                <Option value="CHECKING">Corrente</Option>
+                <Option value="SAVINGS">Poupança</Option>
+              </Select>
 
               <label className="grid gap-2 text-sm font-medium text-foreground">
                 Nome do Banco *

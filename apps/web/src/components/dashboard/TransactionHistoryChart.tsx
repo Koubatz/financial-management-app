@@ -1,14 +1,15 @@
+import type { Transaction } from '@/services/transactions';
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts';
-import type { Transaction } from '@/services/transactions';
+import { Card } from '../ui/card';
 
 interface TransactionHistoryChartProps {
   transactions: Transaction[];
@@ -43,9 +44,9 @@ export function TransactionHistoryChart({ transactions }: TransactionHistoryChar
     );
 
   return (
-    <div className="w-full h-96 bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Histórico de Transações</h2>
-      <ResponsiveContainer width="100%" height="100%">
+    <Card className="w-full h-100">
+      <h2 className="text-xl font-bold text-gray-900 px-4">Histórico de Transações</h2>
+      <ResponsiveContainer width="100%" height="100%" className="min-h-[300px] p-8">
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
@@ -73,6 +74,6 @@ export function TransactionHistoryChart({ transactions }: TransactionHistoryChar
           />
         </LineChart>
       </ResponsiveContainer>
-    </div>
+    </Card>
   );
 }

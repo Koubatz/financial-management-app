@@ -21,7 +21,9 @@ export function DashboardPage() {
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [transactionModalType, setTransactionModalType] = useState<TransactionType>('EXPENSE');
-  const { showError } = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const { showError, showSuccess } = useToast();
   const navigate = useNavigate();
 
   const fetchData = useCallback(async () => {
@@ -128,6 +130,37 @@ export function DashboardPage() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10);
 
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateTransaction = async (data: {
+    amount: string;
+    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+    description: string;
+    walletId: string;
+    date: string;
+    status?: 'COMPLETED' | 'PENDING' | 'CANCELED';
+    paymentMethod?: 'CASH' | 'DEBIT' | 'CREDIT' | 'PIX' | 'BANK_TRANSFER' | 'OTHER';
+    notes?: string;
+  }) => {
+    if (!editingTransaction) return;
+
+    try {
+      await transactionsApi.update(editingTransaction.id, {
+        ...data,
+        amount: parseFloat(data.amount),
+      });
+      showSuccess('Transação atualizada com sucesso!');
+      setIsEditModalOpen(false);
+      setEditingTransaction(null);
+      await fetchData();
+    } catch {
+      showError('Erro ao atualizar transação');
+    }
+  };
+
   if (loading) {
     return (
       <MainLayout>
@@ -191,7 +224,7 @@ export function DashboardPage() {
         />
 
         {/* Últimas Transações */}
-        <RecentTransactions transactions={recentTransactions} />
+        <RecentTransactions transactions={recentTransactions} onEditClick={handleEditTransaction} />
       </div>
 
       {/* Modal de Transação */}
@@ -199,6 +232,32 @@ export function DashboardPage() {
         open={isTransactionModalOpen}
         onClose={() => setIsTransactionModalOpen(false)}
         defaultValues={{ type: transactionModalType }}
+      />
+
+      {/* Modal de Edição */}
+      <TransactionModal
+        open={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingTransaction(null);
+        }}
+        onSubmit={(data) => void handleUpdateTransaction(data)}
+        title="Editar Transação"
+        confirmLabel="Salvar Alterações"
+        defaultValues={
+          editingTransaction
+            ? {
+                amount: String(editingTransaction.amount),
+                type: editingTransaction.type,
+                description: editingTransaction.description,
+                walletId: editingTransaction.walletId,
+                date: editingTransaction.date.split('T')[0],
+                status: editingTransaction.status,
+                paymentMethod: editingTransaction.paymentMethod || undefined,
+                notes: editingTransaction.notes || undefined,
+              }
+            : undefined
+        }
       />
     </MainLayout>
   );

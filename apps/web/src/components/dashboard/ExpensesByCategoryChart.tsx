@@ -1,5 +1,6 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import type { Transaction } from '@/services/transactions';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { Card } from '../ui/card';
 
 interface ExpensesByCategoryChartProps {
   transactions: Transaction[];
@@ -98,8 +99,8 @@ export function ExpensesByCategoryChart({ transactions }: ExpensesByCategoryChar
   }
 
   return (
-    <div className="w-full h-96 bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Despesas por Categoria</h2>
+    <Card className="w-full h-100">
+      <h2 className="text-xl font-bold text-gray-900 mb-4 px-6">Despesas por Categoria</h2>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -123,6 +124,6 @@ export function ExpensesByCategoryChart({ transactions }: ExpensesByCategoryChar
           {/* <Legend /> */}
         </PieChart>
       </ResponsiveContainer>
-    </div>
+    </Card>
   );
 }

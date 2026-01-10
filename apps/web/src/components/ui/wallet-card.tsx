@@ -1,12 +1,13 @@
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import type { Wallet } from '@/services/wallets';
-import { CreditCard, Wallet as WalletIcon, TrendingUp, DollarSign } from 'lucide-react';
+import { CreditCard, Wallet as WalletIcon, TrendingUp, DollarSign, Eye } from 'lucide-react';
 import { Button } from './button';
 
 interface WalletCardProps {
   wallet: Wallet;
   onEdit?: (wallet: Wallet) => void;
   onArchive?: (wallet: Wallet) => void;
+  onViewTransactions?: (wallet: Wallet) => void;
 }
 
 const walletTypeIcons = {
@@ -30,7 +31,7 @@ const formatCurrency = (value: number, currency: string) => {
   }).format(value);
 };
 
-export function WalletCard({ wallet, onEdit, onArchive }: WalletCardProps) {
+export function WalletCard({ wallet, onEdit, onArchive, onViewTransactions }: WalletCardProps) {
   const Icon = walletTypeIcons[wallet.walletType];
   const isArchived = wallet.status === 'ARCHIVED';
 
@@ -114,6 +115,15 @@ export function WalletCard({ wallet, onEdit, onArchive }: WalletCardProps) {
       </CardContent>
 
       <CardFooter className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onViewTransactions?.(wallet)}
+          className="flex-1 gap-2"
+        >
+          <Eye size={16} />
+          Transações
+        </Button>
         <Button variant="outline" size="sm" onClick={() => onEdit?.(wallet)} className="flex-1">
           Editar
         </Button>
