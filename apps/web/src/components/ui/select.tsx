@@ -28,9 +28,33 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
       const selected = options.find(
         (opt) => (opt as React.ReactElement<{ value?: string | number }>).props.value === value,
       );
-      const label = (selected as React.ReactElement<{ children?: React.ReactNode }>)?.props
-        .children;
-      setSelectedLabel(typeof label === 'string' ? label : '');
+
+      if (selected) {
+        const label = (selected as React.ReactElement<{ children?: React.ReactNode }>)?.props
+          .children;
+
+        // Utility function to extract text from React children
+        const extractText = (node: React.ReactNode): string => {
+          if (typeof node === 'string') {
+            return node;
+          }
+          if (typeof node === 'number') {
+            return String(node);
+          }
+          if (Array.isArray(node)) {
+            return node.map(extractText).join('');
+          }
+          if (React.isValidElement<{ children?: React.ReactNode }>(node)) {
+            return extractText(node.props.children);
+          }
+          return '';
+        };
+
+        const text = extractText(label);
+        setSelectedLabel(text);
+      } else {
+        setSelectedLabel('');
+      }
     }, [value, children]);
 
     React.useEffect(() => {
